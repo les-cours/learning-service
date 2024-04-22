@@ -2,6 +2,16 @@ syntax = "proto3";
 package settings;
 option go_package = "./learning";
 
+
+message CreateClassRoomRequest {
+  string teacherID = 1;
+  string subjectID = 2;
+}
+
+message ClassRoom {
+  string classRoomID = 1;
+}
 service LearningService {
 
+  rpc CreateClassRoom(CreateClassRoomRequest)returns(ClassRoom){}
 }

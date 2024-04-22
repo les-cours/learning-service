@@ -7,7 +7,10 @@
 package learning
 
 import (
+	context "context"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LearningServiceClient interface {
+	CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error)
 }
 
 type learningServiceClient struct {
@@ -29,10 +33,20 @@ func NewLearningServiceClient(cc grpc.ClientConnInterface) LearningServiceClient
 	return &learningServiceClient{cc}
 }
 
+func (c *learningServiceClient) CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error) {
+	out := new(ClassRoom)
+	err := c.cc.Invoke(ctx, "/settings.LearningService/CreateClassRoom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearningServiceServer is the server API for LearningService service.
 // All implementations must embed UnimplementedLearningServiceServer
 // for forward compatibility
 type LearningServiceServer interface {
+	CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
 
@@ -40,6 +54,9 @@ type LearningServiceServer interface {
 type UnimplementedLearningServiceServer struct {
 }
 
+func (UnimplementedLearningServiceServer) CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateClassRoom not implemented")
+}
 func (UnimplementedLearningServiceServer) mustEmbedUnimplementedLearningServiceServer() {}
 
 // UnsafeLearningServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -53,13 +70,36 @@ func RegisterLearningServiceServer(s grpc.ServiceRegistrar, srv LearningServiceS
 	s.RegisterService(&LearningService_ServiceDesc, srv)
 }
 
+func _LearningService_CreateClassRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateClassRoomRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).CreateClassRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/settings.LearningService/CreateClassRoom",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).CreateClassRoom(ctx, req.(*CreateClassRoomRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearningService_ServiceDesc is the grpc.ServiceDesc for LearningService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var LearningService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "settings.LearningService",
 	HandlerType: (*LearningServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "api/learning/learning.proto",
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateClassRoom",
+			Handler:    _LearningService_CreateClassRoom_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "api/learning/learning.proto",
 }
