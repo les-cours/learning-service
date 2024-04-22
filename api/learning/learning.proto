@@ -1,0 +1,7 @@
+syntax = "proto3";
+package settings;
+option go_package = "./learning";
+
+service LearningService {
+
+}
