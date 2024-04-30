@@ -8,10 +8,13 @@ import (
 	"github.com/les-cours/learning-service/resolvers"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"runtime"
 )
 
@@ -22,7 +25,7 @@ var (
 	goRoutineNum   = prometheus.NewGauge(prometheus.GaugeOpts{Name: "go_routines_num", Help: "the number of go routine "})
 )
 
-func monitoring_middleware(originalHandler http.Handler) http.HandlerFunc {
+func monitoringMiddleware(originalHandler http.Handler) http.HandlerFunc {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -34,11 +37,27 @@ func monitoring_middleware(originalHandler http.Handler) http.HandlerFunc {
 		originalHandler.ServeHTTP(w, r)
 	})
 }
+func loggerInit() *zap.Logger {
+	encoderConfig := zap.NewDevelopmentEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderConfig),
+		zapcore.AddSync(os.Stdout),
+		zap.NewAtomicLevelAt(zap.InfoLevel),
+	)
+
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(0))
+	return logger
+}
 func Start() {
+	logger := loggerInit()
+	defer logger.Sync()
 	registry.MustRegister(requestCounter, memoryUsage, goRoutineNum)
 	promHandler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
-	http.HandleFunc("/metrics", monitoring_middleware(promHandler))
+	http.HandleFunc("/metrics", monitoringMiddleware(promHandler))
 	log.Printf("Starting http server on port " + env.Settings.HttpPort)
 	go func() {
 		err := http.ListenAndServe(":"+env.Settings.HttpPort, nil)
@@ -74,9 +93,10 @@ func Start() {
 	defer orgsConnectionService.Close()
 
 	server := resolvers.Server{
-		DB:    db,
-		Users: users.NewUserServiceClient(usersConnectionService),
-		Orgs:  orgs.NewOrgServiceClient(orgsConnectionService),
+		DB:     db,
+		Users:  users.NewUserServiceClient(usersConnectionService),
+		Orgs:   orgs.NewOrgServiceClient(orgsConnectionService),
+		Logger: logger,
 	}
 	grpcServer := grpc.NewServer()
 	learning.RegisterLearningServiceServer(grpcServer, &server)

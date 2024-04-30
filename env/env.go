@@ -42,6 +42,9 @@ func init() {
 	viper.BindEnv("USERS_SERVICE_HOST")
 	viper.BindEnv("USERS_SERVICE_PORT")
 
+	viper.BindEnv("ORGS_SERVICE_HOST")
+	viper.BindEnv("ORGS_SERVICE_PORT")
+
 	viper.BindEnv("POSTGRES_HOST")
 	viper.BindEnv("POSTGRES_PORT")
 	viper.BindEnv("POSTGRES_USERNAME")

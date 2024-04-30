@@ -64,7 +64,7 @@ message Subject {
   string name = 2;
   string arabicName = 3;
   repeated Grad grads = 4;
-  repeated api.users.Teacher teachers = 5;
+  repeated users.Teacher teachers = 5;
 }
 
 message GetSubjectsRequest{
