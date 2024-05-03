@@ -5,6 +5,7 @@ go 1.21.5
 require github.com/google/uuid v1.6.0
 
 require (
+	github.com/apivideo/api.video-go-client v1.3.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect

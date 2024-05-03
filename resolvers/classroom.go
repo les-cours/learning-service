@@ -84,7 +84,7 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 	}, nil
 }
 
-func (s *Server) GetClassRoomsBySubject(ctx context.Context, in *learning.GetByUUIDRequest) (*learning.ClassRooms, error) {
+func (s *Server) GetClassRoomsBySubject(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
 
 	var subjectID = in.Id
 
@@ -125,14 +125,14 @@ WHERE deleted_at IS NULL AND subject_id = $1;
 	return classRooms, nil
 }
 
-func (s *Server) GetClassRoom(ctx context.Context, in *learning.GetByUUIDRequest) (*learning.ClassRoom, error) {
+func (s *Server) GetClassRoom(ctx context.Context, in *learning.IDRequest) (*learning.ClassRoom, error) {
 
 	var classRoomID = in.Id
 	classRoom := &learning.ClassRoom{}
 	var studentsCount int32
 
 	err := s.DB.QueryRow(`
-SELECT classrooms.classroom_id,classrooms.title,image,price,badge
+SELECT classroom_id,title,COALESCE(image, 'default.jpg') AS image,price,COALESCE(badge, '') AS badge
 FROM classrooms 
 WHERE deleted_at IS NULL AND classroom_id = $1;
         `, classRoomID).Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge)
@@ -154,19 +154,10 @@ WHERE deleted_at IS NULL AND classroom_id = $1;
 	//get Rating  //To Do
 	classRoom.Rating = 4.7
 
-	//get lessons :
-
-	res, err := s.GetLessonsByClassRoom(ctx, &learning.GetByUUIDRequest{
-		Id: classRoomID,
-	})
-	classRoom.Lessons = &learning.Lessons{
-		Lessons: res.Lessons,
-	}
-
 	return classRoom, nil
 }
 
-func (s *Server) DeleteClassRoom(ctx context.Context, in *learning.GetByUUIDRequest) (*learning.OperationStatus, error) {
+func (s *Server) DeleteClassRoom(ctx context.Context, in *learning.IDRequest) (*learning.OperationStatus, error) {
 
 	var classRoomID = in.Id
 
@@ -176,6 +167,24 @@ UPDATE
 SET deleted_at = $1 
 WHERE classroom_id = $1;
         `, classRoomID)
+
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+	return &learning.OperationStatus{
+		Success: true,
+	}, nil
+}
+
+func (s *Server) DeleteClassRoomsByTeacher(ctx context.Context, in *learning.IDRequest) (*learning.OperationStatus, error) {
+
+	_, err := s.DB.Exec(`
+UPDATE 
+    classrooms 
+SET deleted_at = $1 
+WHERE teacher_id = $1;
+        `, in.Id)
 
 	if err != nil {
 		s.Logger.Error(err.Error())

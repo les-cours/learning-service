@@ -1,6 +1,7 @@
 package service
 
 import (
+	apivideosdk "github.com/apivideo/api.video-go-client"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/api/orgs"
 	"github.com/les-cours/learning-service/api/users"
@@ -52,6 +53,7 @@ func loggerInit() *zap.Logger {
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(0))
 	return logger
 }
+
 func Start() {
 	logger := loggerInit()
 	defer logger.Sync()
@@ -92,11 +94,16 @@ func Start() {
 
 	defer orgsConnectionService.Close()
 
+	/*
+		VIDEO API
+	*/
+	videoApiClient := apivideosdk.ClientBuilder("qyxP5tzBo8HJwtDeS0Rh1cbsjQKNZ8XnalyLSSkUsGQ").Build()
 	server := resolvers.Server{
-		DB:     db,
-		Users:  users.NewUserServiceClient(usersConnectionService),
-		Orgs:   orgs.NewOrgServiceClient(orgsConnectionService),
-		Logger: logger,
+		DB:       db,
+		Users:    users.NewUserServiceClient(usersConnectionService),
+		Orgs:     orgs.NewOrgServiceClient(orgsConnectionService),
+		Logger:   logger,
+		VideoApi: videoApiClient,
 	}
 	grpcServer := grpc.NewServer()
 	learning.RegisterLearningServiceServer(grpcServer, &server)

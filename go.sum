@@ -1,3 +1,5 @@
+github.com/apivideo/api.video-go-client v1.3.1 h1:4kSjFm4K8+1NDkQw8vh0VG5M+QDCAGiaiXZFnAzuEe4=
+github.com/apivideo/api.video-go-client v1.3.1/go.mod h1:Q8jOQD3ev2Gk5WPqPn7p/bF0th8qW34Zy4KUV82T2wA=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj44=

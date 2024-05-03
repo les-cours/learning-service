@@ -2,10 +2,13 @@ syntax = "proto3";
 option go_package = "github.com/les-cours/learning-service/api/learning";
 package learning;
 
+
 message  OperationStatus{
   bool success = 1;
 }
-
+message IDRequest {
+  string id = 1;
+}
 message Pdf {
   string pdfID = 1;
   string title = 2;
@@ -49,31 +52,68 @@ message AddDocumentToClassroomRequest {
   string classRoomID = 1;
 }
 
-message GetByUUIDRequest{
-  string id = 1;
-}
 
 
 message Lesson {
   string lessonID = 1;
   string title = 2;
   string  arabicTitle= 3;
+  string description = 4;
 }
 
 message Lessons{
   repeated Lesson lessons = 1;
 }
 
+message CreateLessonRequest{
+  string userID = 6;
+  string title = 1;
+  string arabicTitle= 2;
+  string chapterID = 3;
+  string description = 4;
+}
+message UploadVideoRequest {
+  string lessonID = 3;
+  bytes content = 1;
+  string filename = 2;
+}
+message Chapter {
+  string chapterID = 1;
+  string title = 2;
+  string  arabicTitle= 3;
+  string description = 4;
+}
+
+message CreateChapterRequest {
+  string userID = 6;
+  string classRoomID = 1;
+  string title = 2;
+  string  arabicTitle= 3;
+  string description = 4;
+}
+
 service LearningService {
   rpc CreateClassRooms(CreateClassRoomsRequest)returns (OperationStatus){}
   rpc CreateClassRoom(CreateClassRoomRequest)returns (ClassRoom){}
-  rpc AddDocumentToClassroom(AddDocumentToClassroomRequest)returns (OperationStatus){}
 
-  rpc GetClassRoomsBySubject(GetByUUIDRequest)returns (ClassRooms){}
-  rpc GetClassRoom(GetByUUIDRequest)returns (ClassRoom){}
+  rpc GetClassRoomsBySubject(IDRequest)returns (ClassRooms){}
+  rpc GetClassRoom(IDRequest)returns (ClassRoom){}
 
-  rpc GetLessonsByClassRoom(GetByUUIDRequest)returns(Lessons){}
-  rpc DeleteClassRoom(GetByUUIDRequest)returns(OperationStatus){}
-  // rpc AddDocumentToClassroom()
-  // rpc Add()returns (){}
+
+  rpc DeleteClassRoom(IDRequest)returns(OperationStatus){}
+  rpc DeleteClassRoomsByTeacher(IDRequest)returns (OperationStatus){}
+  rpc UploadVideo(UploadVideoRequest) returns (OperationStatus);
+
+
+  /*
+  CHAPTER
+*/
+  rpc CreateChapter(CreateChapterRequest)returns (Chapter);
+
+  /*
+    LESSONS
+  */
+  rpc GetLessonsByClassRoom(IDRequest)returns(Lessons){}
+  rpc CreateLesson(CreateLessonRequest)returns (Lesson);
+
 }
