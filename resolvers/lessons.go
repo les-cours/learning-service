@@ -2,29 +2,23 @@ package resolvers
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/utils"
 )
 
 func (s *Server) CreateLesson(ctx context.Context, in *learning.CreateLessonRequest) (*learning.Lesson, error) {
 
-	//var canCreate bool
-	//var err error
-	//canCreate, err = checkCreateLessonPermission(s.DB, in.UserID, in.ChapterID)
-	//
-	//switch {
-	//case err != nil:
-	//	if errors.Is(err, sql.ErrNoRows) {
-	//		return nil, ErrPermission
-	//	}
-	//	return nil, ErrInternal
-	//case !canCreate:
-	//	return nil, ErrPermission
-	//}
+	err := userHasChapter(s.DB, in.UserID, in.ChapterID)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
 
 	lessonID := utils.GenerateUUIDString()
 
-	_, err := s.DB.Exec(`
+	_, err = s.DB.Exec(`
 INSERT INTO 
     lessons 
     (lesson_id,chapter_id, title, arabic_title,description)
@@ -43,20 +37,25 @@ VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.D
 	}, nil
 }
 
-func (s *Server) GetLessonsByClassRoom(ctx context.Context, in *learning.IDRequest) (*learning.Lessons, error) {
-	var classRoomID = in.Id
+func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest) (*learning.Lessons, error) {
+	var chapterID = in.Id
 	lessons := &learning.Lessons{}
-	lesson := &learning.Lesson{}
-	rows, err := s.DB.Query(`SELECT lesson_id,title FROM lessons WHERE classroom_id = $1`, classRoomID)
-	if err != nil {
 
+	rows, err := s.DB.Query(`SELECT lesson_id, title, arabic_title, description
+	FROM lessons WHERE chapter_id = $1 AND deleted_at IS  NULL`, chapterID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound("lesson")
+		}
+		s.Logger.Error(err.Error())
 		return nil, ErrInternal
 	}
 
 	for rows.Next() {
-		err = rows.Scan(&lesson.LessonID, &lesson.Title)
+		lesson := &learning.Lesson{}
+		err = rows.Scan(&lesson.LessonID, &lesson.Title, &lesson.ArabicTitle, &lesson.Description)
 		if err != nil {
-
+			s.Logger.Error(err.Error())
 			return nil, ErrInternal
 		}
 		lessons.Lessons = append(lessons.Lessons, lesson)
@@ -65,16 +64,86 @@ func (s *Server) GetLessonsByClassRoom(ctx context.Context, in *learning.IDReque
 	return lessons, nil
 }
 
-/*
-	func checkCreateLessonPermission(db *sql.DB, userID, chapterID string) (bool, error) {
-		var canCreate bool
-		err := db.QueryRow(`SELECT EXISTS (
-		    SELECT 1
-		    FROM classrooms
-		    WHERE teacher_id = $1
-		    AND classroom_id = (SELECT classroom_id FROM chapters WHERE chapter_id = $2 LIMIT 1)
-		);`, userID, chapterID).Scan(&canCreate)
+func (s *Server) UpdateLesson(ctx context.Context, in *learning.UpdateLessonRequest) (*learning.Lesson, error) {
 
-		return canCreate, err
+	err := userHasLesson(s.DB, in.UserID, in.LessonID)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
 	}
-*/
+
+	_, err = s.DB.Exec(`
+UPDATE lessons SET chapter_id = $2, title = $3, arabic_title = $4,description = $5 WHERE lesson_id = $1;
+`, in.LessonID, in.ChapterID, in.Title, in.ArabicTitle, in.Description)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound("lesson")
+		}
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+
+	return &learning.Lesson{
+		LessonID:    in.LessonID,
+		Title:       in.Title,
+		ArabicTitle: in.ArabicTitle,
+		Description: in.Description,
+	}, nil
+}
+
+func (s *Server) DeleteLesson(ctx context.Context, in *learning.IDRequest) (*learning.OperationStatus, error) {
+
+	err := userHasLesson(s.DB, in.UserID, in.Id)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+
+	res, err := s.DB.Exec(`
+UPDATE lessons SET deleted_at = CURRENT_TIMESTAMP WHERE lesson_id = $1;
+`, in.Id)
+
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+
+	if rowsAffected == 0 {
+		return nil, ErrNotFound("lesson")
+	}
+
+	return &learning.OperationStatus{
+		Success: true,
+	}, nil
+}
+
+func userHasLesson(db *sql.DB, userID, lessonID string) error {
+
+	var has bool
+	err := db.QueryRow(`SELECT EXISTS (
+    SELECT 1
+    FROM classrooms
+    JOIN chapters ON classrooms.classroom_id = chapters.classroom_id
+    JOIN lessons ON chapters.chapter_id = lessons.chapter_id
+    WHERE classrooms.teacher_id = $1
+    AND lessons.lesson_id = $2
+);
+`, userID, lessonID).Scan(&has)
+
+	if err != nil {
+		return ErrInternal
+	}
+
+	if has {
+		return nil
+	}
+
+	return ErrPermission
+}

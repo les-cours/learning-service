@@ -12,7 +12,7 @@ const (
 	bucketName = "your-bucket-name"
 )
 
-func (s *Server) UploadVideo(ctx context.Context, in *learning.UploadVideoRequest) (*learning.OperationStatus, error) {
+func (s *Server) UploadVideo(ctx context.Context, in *learning.UploadVideoRequest) (*apivideosdk.Video, error) {
 
 	videoCreationPayload := *apivideosdk.NewVideoCreationPayload(in.Filename)
 	video, err := s.VideoApi.Videos.Create(videoCreationPayload)
@@ -33,11 +33,7 @@ func (s *Server) UploadVideo(ctx context.Context, in *learning.UploadVideoReques
 
 	video, err = s.VideoApi.Videos.UploadFile(video.GetVideoId(), file)
 
-	/*
-		SQL
-	*/
-
-	return &learning.OperationStatus{Success: true}, nil
+	return video, nil
 }
 
 //

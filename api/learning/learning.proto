@@ -8,6 +8,7 @@ message  OperationStatus{
 }
 message IDRequest {
   string id = 1;
+  string userID = 2;
 }
 message Pdf {
   string pdfID = 1;
@@ -26,6 +27,7 @@ message CreateClassRoomRequest {
   string subjectID = 2;
 }
 
+
 message CreateClassRoomsRequest {
   string teacherID = 1;
   repeated string subjectIDs= 2;
@@ -40,7 +42,6 @@ message ClassRoom {
   string badge = 5;
   int32 studentCount = 6;
   float Rating = 7;
-  Lessons lessons = 9;
 }
 
 
@@ -72,10 +73,23 @@ message CreateLessonRequest{
   string chapterID = 3;
   string description = 4;
 }
+
+message UpdateLessonRequest {
+  string lessonID = 5;
+  string userID = 6;
+  string title = 1;
+  string arabicTitle= 2;
+  string chapterID = 3;
+  string description = 4;
+}
+
 message UploadVideoRequest {
-  string lessonID = 3;
   bytes content = 1;
   string filename = 2;
+}
+
+message Chapters {
+  repeated Chapter chapters =1 ;
 }
 message Chapter {
   string chapterID = 1;
@@ -92,28 +106,76 @@ message CreateChapterRequest {
   string description = 4;
 }
 
+message UpdateChapterRequest {
+  string chapterID = 7;
+  string userID = 6;
+  string title = 2;
+  string  arabicTitle= 3;
+  string description = 4;
+}
+
+message CreateDocumentRequest {
+  string lessonID = 1;
+  string title = 2;
+  string arabic_title = 3;
+  string description = 4;
+  int32 lecture_number = 5;
+}
+
+message CreateVideoRequest {
+  string lessonID = 2;
+  string title = 4;
+  string arabic_title = 5;
+  string description = 6;
+  int32 lecture_number = 8;
+  UploadVideoRequest video = 9;
+}
+
+message Document {
+  string documentID = 1;
+  string documentType = 3;
+  string title = 4;
+  string arabic_title = 5;
+  string description = 6;
+  int32 duration = 7;
+  int32 lecture_number = 8;
+  string DocumentLink=9;
+}
+
+message Documents{
+  repeated Document documents = 1;
+}
+
 service LearningService {
   rpc CreateClassRooms(CreateClassRoomsRequest)returns (OperationStatus){}
   rpc CreateClassRoom(CreateClassRoomRequest)returns (ClassRoom){}
-
-  rpc GetClassRoomsBySubject(IDRequest)returns (ClassRooms){}
+  rpc GetClassRooms(IDRequest)returns (ClassRooms){}
+  rpc GetMyClassRooms(IDRequest)returns (ClassRooms){} // student -> classrooms
   rpc GetClassRoom(IDRequest)returns (ClassRoom){}
-
-
   rpc DeleteClassRoom(IDRequest)returns(OperationStatus){}
   rpc DeleteClassRoomsByTeacher(IDRequest)returns (OperationStatus){}
-  rpc UploadVideo(UploadVideoRequest) returns (OperationStatus);
 
 
   /*
   CHAPTER
 */
-  rpc CreateChapter(CreateChapterRequest)returns (Chapter);
+  rpc CreateChapter(CreateChapterRequest)returns (Chapter){}
+  rpc GetChaptersByClassRoom(IDRequest)returns (Chapters){}
+  rpc UpdateChapter(UpdateChapterRequest)returns (Chapter){}
+  rpc DeleteChapter(IDRequest)returns (OperationStatus){}
 
   /*
     LESSONS
   */
-  rpc GetLessonsByClassRoom(IDRequest)returns(Lessons){}
-  rpc CreateLesson(CreateLessonRequest)returns (Lesson);
+  rpc GetLessonsByChapter(IDRequest)returns(Lessons){}
+  rpc CreateLesson(CreateLessonRequest)returns (Lesson){}
+  rpc UpdateLesson(UpdateLessonRequest)returns (Lesson){}
+  rpc DeleteLesson(IDRequest)returns (OperationStatus){}
+  /*
+   DOCUMENT
+*/
+  rpc CreateVideo(CreateVideoRequest)returns (Document){}
+  rpc GetDocumentsByLesson(IDRequest)returns (Documents){}
+
 
 }

@@ -84,16 +84,14 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 	}, nil
 }
 
-func (s *Server) GetClassRoomsBySubject(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
+func (s *Server) GetClassRooms(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
 
 	var subjectID = in.Id
 
 	rows, err := s.DB.Query(`
-SELECT classrooms.classroom_id,classrooms.title,image,price,badge
-FROM classrooms 
-    inner join classrooms_document d 
-        on classrooms.classroom_id = d.classroom_id
-WHERE deleted_at IS NULL AND subject_id = $1;
+SELECT classroom_id, title, image, price, badge, description, arabic_title
+	FROM classrooms
+WHERE deleted_at IS NULL AND subject_id = $1 ;
         `, subjectID)
 	if err != nil {
 		s.Logger.Error(err.Error())
@@ -158,20 +156,25 @@ WHERE deleted_at IS NULL AND classroom_id = $1;
 }
 
 func (s *Server) DeleteClassRoom(ctx context.Context, in *learning.IDRequest) (*learning.OperationStatus, error) {
+	err := userHasClassRoom(s.DB, in.UserID, in.Id)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, err
+	}
 
 	var classRoomID = in.Id
 
-	_, err := s.DB.Exec(`
+	_, err = s.DB.Exec(`
 UPDATE 
     classrooms 
 SET deleted_at = $1 
 WHERE classroom_id = $1;
         `, classRoomID)
-
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return nil, ErrInternal
 	}
+
 	return &learning.OperationStatus{
 		Success: true,
 	}, nil
@@ -218,3 +221,23 @@ func (s *Server) AddDocumentToClassroom(ctx context.Context, in *learning.AddDoc
 //
 //	return nil, nil
 //}
+
+func userHasClassRoom(db *sql.DB, userID, classRoomID string) error {
+	var has bool
+	err := db.QueryRow(`SELECT EXISTS (
+	    SELECT 1
+	    FROM classrooms
+	    WHERE teacher_id = $1
+	    AND classroom_id = $2
+	);`, userID, classRoomID).Scan(&has)
+
+	if err != nil {
+		return ErrInternal
+	}
+
+	if has {
+		return nil
+	}
+
+	return ErrPermission
+}

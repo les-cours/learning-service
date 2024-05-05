@@ -24,16 +24,24 @@ const _ = grpc.SupportPackageIsVersion7
 type LearningServiceClient interface {
 	CreateClassRooms(ctx context.Context, in *CreateClassRoomsRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error)
-	GetClassRoomsBySubject(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
+	GetClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
+	GetMyClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
 	GetClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRoom, error)
 	DeleteClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	DeleteClassRoomsByTeacher(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
-	UploadVideo(ctx context.Context, in *UploadVideoRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	// CHAPTER
 	CreateChapter(ctx context.Context, in *CreateChapterRequest, opts ...grpc.CallOption) (*Chapter, error)
+	GetChaptersByClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Chapters, error)
+	UpdateChapter(ctx context.Context, in *UpdateChapterRequest, opts ...grpc.CallOption) (*Chapter, error)
+	DeleteChapter(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	// LESSONS
-	GetLessonsByClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Lessons, error)
+	GetLessonsByChapter(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Lessons, error)
 	CreateLesson(ctx context.Context, in *CreateLessonRequest, opts ...grpc.CallOption) (*Lesson, error)
+	UpdateLesson(ctx context.Context, in *UpdateLessonRequest, opts ...grpc.CallOption) (*Lesson, error)
+	DeleteLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
+	// DOCUMENT
+	CreateVideo(ctx context.Context, in *CreateVideoRequest, opts ...grpc.CallOption) (*Document, error)
+	GetDocumentsByLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error)
 }
 
 type learningServiceClient struct {
@@ -62,9 +70,18 @@ func (c *learningServiceClient) CreateClassRoom(ctx context.Context, in *CreateC
 	return out, nil
 }
 
-func (c *learningServiceClient) GetClassRoomsBySubject(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error) {
+func (c *learningServiceClient) GetClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error) {
 	out := new(ClassRooms)
-	err := c.cc.Invoke(ctx, "/learning.LearningService/GetClassRoomsBySubject", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetClassRooms", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) GetMyClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error) {
+	out := new(ClassRooms)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetMyClassRooms", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,15 +115,6 @@ func (c *learningServiceClient) DeleteClassRoomsByTeacher(ctx context.Context, i
 	return out, nil
 }
 
-func (c *learningServiceClient) UploadVideo(ctx context.Context, in *UploadVideoRequest, opts ...grpc.CallOption) (*OperationStatus, error) {
-	out := new(OperationStatus)
-	err := c.cc.Invoke(ctx, "/learning.LearningService/UploadVideo", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *learningServiceClient) CreateChapter(ctx context.Context, in *CreateChapterRequest, opts ...grpc.CallOption) (*Chapter, error) {
 	out := new(Chapter)
 	err := c.cc.Invoke(ctx, "/learning.LearningService/CreateChapter", in, out, opts...)
@@ -116,9 +124,36 @@ func (c *learningServiceClient) CreateChapter(ctx context.Context, in *CreateCha
 	return out, nil
 }
 
-func (c *learningServiceClient) GetLessonsByClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Lessons, error) {
+func (c *learningServiceClient) GetChaptersByClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Chapters, error) {
+	out := new(Chapters)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetChaptersByClassRoom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) UpdateChapter(ctx context.Context, in *UpdateChapterRequest, opts ...grpc.CallOption) (*Chapter, error) {
+	out := new(Chapter)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/UpdateChapter", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) DeleteChapter(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error) {
+	out := new(OperationStatus)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/DeleteChapter", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) GetLessonsByChapter(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Lessons, error) {
 	out := new(Lessons)
-	err := c.cc.Invoke(ctx, "/learning.LearningService/GetLessonsByClassRoom", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetLessonsByChapter", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,22 +169,66 @@ func (c *learningServiceClient) CreateLesson(ctx context.Context, in *CreateLess
 	return out, nil
 }
 
+func (c *learningServiceClient) UpdateLesson(ctx context.Context, in *UpdateLessonRequest, opts ...grpc.CallOption) (*Lesson, error) {
+	out := new(Lesson)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/UpdateLesson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) DeleteLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error) {
+	out := new(OperationStatus)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/DeleteLesson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) CreateVideo(ctx context.Context, in *CreateVideoRequest, opts ...grpc.CallOption) (*Document, error) {
+	out := new(Document)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/CreateVideo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) GetDocumentsByLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error) {
+	out := new(Documents)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetDocumentsByLesson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearningServiceServer is the server API for LearningService service.
 // All implementations must embed UnimplementedLearningServiceServer
 // for forward compatibility
 type LearningServiceServer interface {
 	CreateClassRooms(context.Context, *CreateClassRoomsRequest) (*OperationStatus, error)
 	CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error)
-	GetClassRoomsBySubject(context.Context, *IDRequest) (*ClassRooms, error)
+	GetClassRooms(context.Context, *IDRequest) (*ClassRooms, error)
+	GetMyClassRooms(context.Context, *IDRequest) (*ClassRooms, error)
 	GetClassRoom(context.Context, *IDRequest) (*ClassRoom, error)
 	DeleteClassRoom(context.Context, *IDRequest) (*OperationStatus, error)
 	DeleteClassRoomsByTeacher(context.Context, *IDRequest) (*OperationStatus, error)
-	UploadVideo(context.Context, *UploadVideoRequest) (*OperationStatus, error)
 	// CHAPTER
 	CreateChapter(context.Context, *CreateChapterRequest) (*Chapter, error)
+	GetChaptersByClassRoom(context.Context, *IDRequest) (*Chapters, error)
+	UpdateChapter(context.Context, *UpdateChapterRequest) (*Chapter, error)
+	DeleteChapter(context.Context, *IDRequest) (*OperationStatus, error)
 	// LESSONS
-	GetLessonsByClassRoom(context.Context, *IDRequest) (*Lessons, error)
+	GetLessonsByChapter(context.Context, *IDRequest) (*Lessons, error)
 	CreateLesson(context.Context, *CreateLessonRequest) (*Lesson, error)
+	UpdateLesson(context.Context, *UpdateLessonRequest) (*Lesson, error)
+	DeleteLesson(context.Context, *IDRequest) (*OperationStatus, error)
+	// DOCUMENT
+	CreateVideo(context.Context, *CreateVideoRequest) (*Document, error)
+	GetDocumentsByLesson(context.Context, *IDRequest) (*Documents, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
 
@@ -163,8 +242,11 @@ func (UnimplementedLearningServiceServer) CreateClassRooms(context.Context, *Cre
 func (UnimplementedLearningServiceServer) CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateClassRoom not implemented")
 }
-func (UnimplementedLearningServiceServer) GetClassRoomsBySubject(context.Context, *IDRequest) (*ClassRooms, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetClassRoomsBySubject not implemented")
+func (UnimplementedLearningServiceServer) GetClassRooms(context.Context, *IDRequest) (*ClassRooms, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetClassRooms not implemented")
+}
+func (UnimplementedLearningServiceServer) GetMyClassRooms(context.Context, *IDRequest) (*ClassRooms, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyClassRooms not implemented")
 }
 func (UnimplementedLearningServiceServer) GetClassRoom(context.Context, *IDRequest) (*ClassRoom, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetClassRoom not implemented")
@@ -175,17 +257,35 @@ func (UnimplementedLearningServiceServer) DeleteClassRoom(context.Context, *IDRe
 func (UnimplementedLearningServiceServer) DeleteClassRoomsByTeacher(context.Context, *IDRequest) (*OperationStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteClassRoomsByTeacher not implemented")
 }
-func (UnimplementedLearningServiceServer) UploadVideo(context.Context, *UploadVideoRequest) (*OperationStatus, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UploadVideo not implemented")
-}
 func (UnimplementedLearningServiceServer) CreateChapter(context.Context, *CreateChapterRequest) (*Chapter, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChapter not implemented")
 }
-func (UnimplementedLearningServiceServer) GetLessonsByClassRoom(context.Context, *IDRequest) (*Lessons, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLessonsByClassRoom not implemented")
+func (UnimplementedLearningServiceServer) GetChaptersByClassRoom(context.Context, *IDRequest) (*Chapters, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChaptersByClassRoom not implemented")
+}
+func (UnimplementedLearningServiceServer) UpdateChapter(context.Context, *UpdateChapterRequest) (*Chapter, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateChapter not implemented")
+}
+func (UnimplementedLearningServiceServer) DeleteChapter(context.Context, *IDRequest) (*OperationStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteChapter not implemented")
+}
+func (UnimplementedLearningServiceServer) GetLessonsByChapter(context.Context, *IDRequest) (*Lessons, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLessonsByChapter not implemented")
 }
 func (UnimplementedLearningServiceServer) CreateLesson(context.Context, *CreateLessonRequest) (*Lesson, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLesson not implemented")
+}
+func (UnimplementedLearningServiceServer) UpdateLesson(context.Context, *UpdateLessonRequest) (*Lesson, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateLesson not implemented")
+}
+func (UnimplementedLearningServiceServer) DeleteLesson(context.Context, *IDRequest) (*OperationStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteLesson not implemented")
+}
+func (UnimplementedLearningServiceServer) CreateVideo(context.Context, *CreateVideoRequest) (*Document, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateVideo not implemented")
+}
+func (UnimplementedLearningServiceServer) GetDocumentsByLesson(context.Context, *IDRequest) (*Documents, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDocumentsByLesson not implemented")
 }
 func (UnimplementedLearningServiceServer) mustEmbedUnimplementedLearningServiceServer() {}
 
@@ -236,20 +336,38 @@ func _LearningService_CreateClassRoom_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LearningService_GetClassRoomsBySubject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _LearningService_GetClassRooms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LearningServiceServer).GetClassRoomsBySubject(ctx, in)
+		return srv.(LearningServiceServer).GetClassRooms(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/learning.LearningService/GetClassRoomsBySubject",
+		FullMethod: "/learning.LearningService/GetClassRooms",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LearningServiceServer).GetClassRoomsBySubject(ctx, req.(*IDRequest))
+		return srv.(LearningServiceServer).GetClassRooms(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_GetMyClassRooms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetMyClassRooms(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetMyClassRooms",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetMyClassRooms(ctx, req.(*IDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -308,24 +426,6 @@ func _LearningService_DeleteClassRoomsByTeacher_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LearningService_UploadVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadVideoRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LearningServiceServer).UploadVideo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/learning.LearningService/UploadVideo",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LearningServiceServer).UploadVideo(ctx, req.(*UploadVideoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _LearningService_CreateChapter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateChapterRequest)
 	if err := dec(in); err != nil {
@@ -344,20 +444,74 @@ func _LearningService_CreateChapter_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LearningService_GetLessonsByClassRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _LearningService_GetChaptersByClassRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LearningServiceServer).GetLessonsByClassRoom(ctx, in)
+		return srv.(LearningServiceServer).GetChaptersByClassRoom(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/learning.LearningService/GetLessonsByClassRoom",
+		FullMethod: "/learning.LearningService/GetChaptersByClassRoom",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LearningServiceServer).GetLessonsByClassRoom(ctx, req.(*IDRequest))
+		return srv.(LearningServiceServer).GetChaptersByClassRoom(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_UpdateChapter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateChapterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).UpdateChapter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/UpdateChapter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).UpdateChapter(ctx, req.(*UpdateChapterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_DeleteChapter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).DeleteChapter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/DeleteChapter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).DeleteChapter(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_GetLessonsByChapter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetLessonsByChapter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetLessonsByChapter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetLessonsByChapter(ctx, req.(*IDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -380,6 +534,78 @@ func _LearningService_CreateLesson_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearningService_UpdateLesson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateLessonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).UpdateLesson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/UpdateLesson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).UpdateLesson(ctx, req.(*UpdateLessonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_DeleteLesson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).DeleteLesson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/DeleteLesson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).DeleteLesson(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_CreateVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateVideoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).CreateVideo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/CreateVideo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).CreateVideo(ctx, req.(*CreateVideoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_GetDocumentsByLesson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetDocumentsByLesson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetDocumentsByLesson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetDocumentsByLesson(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearningService_ServiceDesc is the grpc.ServiceDesc for LearningService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -396,8 +622,12 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LearningService_CreateClassRoom_Handler,
 		},
 		{
-			MethodName: "GetClassRoomsBySubject",
-			Handler:    _LearningService_GetClassRoomsBySubject_Handler,
+			MethodName: "GetClassRooms",
+			Handler:    _LearningService_GetClassRooms_Handler,
+		},
+		{
+			MethodName: "GetMyClassRooms",
+			Handler:    _LearningService_GetMyClassRooms_Handler,
 		},
 		{
 			MethodName: "GetClassRoom",
@@ -412,20 +642,44 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LearningService_DeleteClassRoomsByTeacher_Handler,
 		},
 		{
-			MethodName: "UploadVideo",
-			Handler:    _LearningService_UploadVideo_Handler,
-		},
-		{
 			MethodName: "CreateChapter",
 			Handler:    _LearningService_CreateChapter_Handler,
 		},
 		{
-			MethodName: "GetLessonsByClassRoom",
-			Handler:    _LearningService_GetLessonsByClassRoom_Handler,
+			MethodName: "GetChaptersByClassRoom",
+			Handler:    _LearningService_GetChaptersByClassRoom_Handler,
+		},
+		{
+			MethodName: "UpdateChapter",
+			Handler:    _LearningService_UpdateChapter_Handler,
+		},
+		{
+			MethodName: "DeleteChapter",
+			Handler:    _LearningService_DeleteChapter_Handler,
+		},
+		{
+			MethodName: "GetLessonsByChapter",
+			Handler:    _LearningService_GetLessonsByChapter_Handler,
 		},
 		{
 			MethodName: "CreateLesson",
 			Handler:    _LearningService_CreateLesson_Handler,
+		},
+		{
+			MethodName: "UpdateLesson",
+			Handler:    _LearningService_UpdateLesson_Handler,
+		},
+		{
+			MethodName: "DeleteLesson",
+			Handler:    _LearningService_DeleteLesson_Handler,
+		},
+		{
+			MethodName: "CreateVideo",
+			Handler:    _LearningService_CreateVideo_Handler,
+		},
+		{
+			MethodName: "GetDocumentsByLesson",
+			Handler:    _LearningService_GetDocumentsByLesson_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
