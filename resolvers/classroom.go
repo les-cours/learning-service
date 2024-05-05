@@ -98,10 +98,10 @@ WHERE deleted_at IS NULL AND subject_id = $1 ;
 		return nil, err
 	}
 
-	classRoom := &learning.ClassRoom{}
 	classRooms := &learning.ClassRooms{}
 	var studentsCount int32
 	for rows.Next() {
+		classRoom := &learning.ClassRoom{}
 		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge)
 		if err != nil {
 			s.Logger.Error(err.Error())
@@ -203,16 +203,92 @@ func (s *Server) AddDocumentToClassroom(ctx context.Context, in *learning.AddDoc
 	return nil, nil
 }
 
-//
-//func (s *Server) GetClassRoomsByStudent(ctx context.Context, in *learning.GetByUUIDRequest) (*learning.ClassRooms, error) {
-//
-//	return nil, nil
-//}
-//
-//func (s *Server) GetClassRoomsByTeacher(ctx context.Context, in *learning.GetByUUIDRequest) (*learning.ClassRooms, error) {
-//
-//	return nil, nil
-//}
+func (s *Server) GetClassRoomsByTeacher(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
+
+	var subjectID = in.Id
+	var teacherID = in.UserID
+
+	rows, err := s.DB.Query(`
+SELECT classroom_id, title, image, price, badge, description, arabic_title
+	FROM classrooms
+WHERE deleted_at IS NULL AND subject_id = $1 AND teacher_id = $2;
+        `, subjectID, teacherID)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound("classroom")
+		}
+		return nil, ErrInternal
+	}
+
+	classRooms := &learning.ClassRooms{}
+	var studentsCount int32
+	for rows.Next() {
+		classRoom := &learning.ClassRoom{}
+		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+		//get students count for this
+		err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom).Scan(&studentsCount)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+		classRoom.StudentCount = studentsCount
+		//get Rating  //To Do
+
+		classRoom.Rating = 4.7
+		classRooms.Classrooms = append(classRooms.Classrooms, classRoom)
+	}
+
+	return classRooms, nil
+}
+
+func (s *Server) GetClassRoomsByStudent(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
+
+	var subjectID = in.Id
+	var studentID = in.UserID
+
+	rows, err := s.DB.Query(`
+SELECT classrooms.classroom_id, title, image, price, badge, description, arabic_title
+	FROM classrooms
+	INNER JOIN subscription s on classrooms.classroom_id = s.classroom_id
+WHERE deleted_at IS NULL AND subject_id = $1 AND s.student_id = $2;
+        `, subjectID, studentID)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound("classroom")
+		}
+		return nil, ErrInternal
+	}
+
+	classRooms := &learning.ClassRooms{}
+	var studentsCount int32
+	for rows.Next() {
+		classRoom := &learning.ClassRoom{}
+		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+		//get students count for this
+		err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom).Scan(&studentsCount)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+		classRoom.StudentCount = studentsCount
+		//get Rating  //To Do
+
+		classRoom.Rating = 4.7
+		classRooms.Classrooms = append(classRooms.Classrooms, classRoom)
+	}
+
+	return classRooms, nil
+}
 
 //func (s *Server) DeleteClassRoom(ctx context.Context, in *learning.GetClassRoomsByStudentRequest) (*learning.ClassRooms, error) {
 //
@@ -221,6 +297,50 @@ func (s *Server) AddDocumentToClassroom(ctx context.Context, in *learning.AddDoc
 //
 //	return nil, nil
 //}
+
+/*
+STUDENTS
+*/
+
+func (s *Server) GetMyClassRooms(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
+
+	var subjectID = in.Id
+	var studentID = in.UserID
+
+	rows, err := s.DB.Query(`
+SELECT DISTINCT classrooms.classroom_id, title, COALESCE(image, 'default.jpg') AS image,price,COALESCE(badge, '') AS badge, description, arabic_title
+	FROM classrooms
+	INNER JOIN subscription s on classrooms.classroom_id = s.classroom_id
+WHERE s.student_id = $1 AND deleted_at IS NULL AND classrooms.subject_id = $2 ;
+        `, studentID, subjectID)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, err
+	}
+
+	classRooms := &learning.ClassRooms{}
+	var studentsCount int32
+	for rows.Next() {
+		classRoom := &learning.ClassRoom{}
+		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge, &classRoom.Description, &classRoom.ArabicTitle)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+		//get students count for this
+		err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom.ClassRoomID).Scan(&studentsCount)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+		classRoom.StudentCount = studentsCount
+
+		classRoom.Rating = 4.7
+		classRooms.Classrooms = append(classRooms.Classrooms, classRoom)
+	}
+
+	return classRooms, nil
+}
 
 func userHasClassRoom(db *sql.DB, userID, classRoomID string) error {
 	var has bool

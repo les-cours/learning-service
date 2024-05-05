@@ -6,6 +6,8 @@ import (
 	"errors"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/utils"
+	"go.uber.org/zap"
+	"log"
 )
 
 func (s *Server) CreateLesson(ctx context.Context, in *learning.CreateLessonRequest) (*learning.Lesson, error) {
@@ -69,7 +71,7 @@ func (s *Server) UpdateLesson(ctx context.Context, in *learning.UpdateLessonRequ
 	err := userHasLesson(s.DB, in.UserID, in.LessonID)
 	if err != nil {
 		s.Logger.Error(err.Error())
-		return nil, ErrInternal
+		return nil, err
 	}
 
 	_, err = s.DB.Exec(`
@@ -146,4 +148,59 @@ func userHasLesson(db *sql.DB, userID, lessonID string) error {
 	}
 
 	return ErrPermission
+}
+
+/*
+FOR STUDENTS
+*/
+
+func (s *Server) GetLessonsByStudent(ctx context.Context, in *learning.IDRequest) (*learning.StudentLessons, error) {
+	lessons, err := s.GetLessonsByChapter(ctx, in)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, err
+	}
+
+	studentLessons := &learning.StudentLessons{}
+	var canAccess bool
+	for _, lesson := range lessons.Lessons {
+		studentLesson := &learning.StudentLesson{}
+		studentLesson.Lesson = lesson
+		canAccess, err = canAccessToLesson(s.DB, in.UserID, lesson.LessonID)
+		s.Logger.Info(lesson.LessonID, zap.Bool("canAccess : ", canAccess), zap.String("id ", in.UserID))
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, ErrInternal
+		}
+
+		if canAccess {
+			studentLesson.CanAccess = true
+		}
+		studentLessons.Lessons = append(studentLessons.Lessons, studentLesson)
+	}
+
+	return studentLessons, nil
+}
+
+func canAccessToLesson(db *sql.DB, studentID, lessonID string) (bool, error) {
+
+	var has bool
+	err := db.QueryRow(`SELECT EXISTS (
+    SELECT 1
+    FROM subscription
+    INNER JOIN lessons ON subscription.month_id = lessons.month_id
+    INNER JOIN chapters ON chapters.chapter_id = lessons.chapter_id
+    
+    WHERE subscription.classroom_id = chapters.classroom_id
+    AND subscription.student_id = $1
+    AND lessons.lesson_id = $2
+);
+`, studentID, lessonID).Scan(&has)
+
+	log.Printf("s : %s,l: %s , has ; %v", lessonID, studentID, has)
+	if err != nil {
+		return false, ErrInternal
+	}
+	return has, nil
+
 }

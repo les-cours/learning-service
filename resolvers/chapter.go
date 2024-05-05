@@ -124,6 +124,34 @@ UPDATE chapters SET deleted_at = CURRENT_TIMESTAMP WHERE chapter_id = $1;
 	}, nil
 }
 
+func (s *Server) GetChapter(ctx context.Context, in *learning.IDRequest) (*learning.Chapters, error) {
+
+	rows, err := s.DB.Query(`SELECT 
+    chapter_id, title, arabic_title, description
+FROM chapters 
+WHERE classroom_id = $1;`, in.Id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound("chapter")
+		}
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+
+	chapters := &learning.Chapters{}
+	for rows.Next() {
+		chapter := &learning.Chapter{}
+		err = rows.Scan(&chapter.ChapterID, &chapter.Title, &chapter.ArabicTitle, &chapter.Description)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, ErrInternal
+		}
+		chapters.Chapters = append(chapters.Chapters, chapter)
+	}
+
+	return chapters, nil
+}
+
 func userHasChapter(db *sql.DB, userID, chapterID string) error {
 	var has bool
 	err := db.QueryRow(`SELECT EXISTS (

@@ -42,6 +42,8 @@ message ClassRoom {
   string badge = 5;
   int32 studentCount = 6;
   float Rating = 7;
+  string arabicTitle= 8;
+  string description = 9;
 }
 
 
@@ -64,6 +66,15 @@ message Lesson {
 
 message Lessons{
   repeated Lesson lessons = 1;
+}
+
+message StudentLesson {
+  Lesson lesson = 1;
+  bool canAccess = 2;
+}
+
+message StudentLessons{
+  repeated StudentLesson lessons = 1;
 }
 
 message CreateLessonRequest{
@@ -171,6 +182,7 @@ service LearningService {
   rpc CreateLesson(CreateLessonRequest)returns (Lesson){}
   rpc UpdateLesson(UpdateLessonRequest)returns (Lesson){}
   rpc DeleteLesson(IDRequest)returns (OperationStatus){}
+  rpc GetLessonsByStudent(IDRequest)returns(StudentLessons){}
   /*
    DOCUMENT
 */
