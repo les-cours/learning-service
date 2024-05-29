@@ -25,6 +25,7 @@ type LearningServiceClient interface {
 	CreateClassRooms(ctx context.Context, in *CreateClassRoomsRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error)
 	GetClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
+	GetClassRoomsByTeacher(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
 	GetMyClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
 	GetClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRoom, error)
 	DeleteClassRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
@@ -74,6 +75,15 @@ func (c *learningServiceClient) CreateClassRoom(ctx context.Context, in *CreateC
 func (c *learningServiceClient) GetClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error) {
 	out := new(ClassRooms)
 	err := c.cc.Invoke(ctx, "/learning.LearningService/GetClassRooms", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) GetClassRoomsByTeacher(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error) {
+	out := new(ClassRooms)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetClassRoomsByTeacher", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -222,6 +232,7 @@ type LearningServiceServer interface {
 	CreateClassRooms(context.Context, *CreateClassRoomsRequest) (*OperationStatus, error)
 	CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error)
 	GetClassRooms(context.Context, *IDRequest) (*ClassRooms, error)
+	GetClassRoomsByTeacher(context.Context, *IDRequest) (*ClassRooms, error)
 	GetMyClassRooms(context.Context, *IDRequest) (*ClassRooms, error)
 	GetClassRoom(context.Context, *IDRequest) (*ClassRoom, error)
 	DeleteClassRoom(context.Context, *IDRequest) (*OperationStatus, error)
@@ -255,6 +266,9 @@ func (UnimplementedLearningServiceServer) CreateClassRoom(context.Context, *Crea
 }
 func (UnimplementedLearningServiceServer) GetClassRooms(context.Context, *IDRequest) (*ClassRooms, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetClassRooms not implemented")
+}
+func (UnimplementedLearningServiceServer) GetClassRoomsByTeacher(context.Context, *IDRequest) (*ClassRooms, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetClassRoomsByTeacher not implemented")
 }
 func (UnimplementedLearningServiceServer) GetMyClassRooms(context.Context, *IDRequest) (*ClassRooms, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMyClassRooms not implemented")
@@ -364,6 +378,24 @@ func _LearningService_GetClassRooms_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LearningServiceServer).GetClassRooms(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_GetClassRoomsByTeacher_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetClassRoomsByTeacher(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetClassRoomsByTeacher",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetClassRoomsByTeacher(ctx, req.(*IDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -656,6 +688,10 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetClassRooms",
 			Handler:    _LearningService_GetClassRooms_Handler,
+		},
+		{
+			MethodName: "GetClassRoomsByTeacher",
+			Handler:    _LearningService_GetClassRoomsByTeacher_Handler,
 		},
 		{
 			MethodName: "GetMyClassRooms",

@@ -32,7 +32,7 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 	var subjectName string
 	var arabicSubjectName string
 
-	err := s.DB.QueryRow(`SELECT name ,arabic_name FROM subjects 
+	err := s.DB.QueryRow(`SELECT title ,title_ar FROM subjects 
                          WHERE subject_id = $1 
 `, in.SubjectID).Scan(&subjectName, &arabicSubjectName)
 
@@ -41,10 +41,15 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 		return nil, ErrNotFound("subject")
 	}
 
-	rows, err := s.DB.Query(`SELECT g.name ,g.arabic_name ,g.department_id FROM grades_subjects 
+	rows, err := s.DB.Query(`SELECT g.title ,g.title_ar ,g.department_id FROM grades_subjects 
                          inner join public.grades g on g.grade_id = grades_subjects.grade_id
                          WHERE subject_id = $1 
 `, in.SubjectID)
+
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
 
 	var arabicGradName string
 	var gradName string
@@ -205,14 +210,13 @@ func (s *Server) AddDocumentToClassroom(ctx context.Context, in *learning.AddDoc
 
 func (s *Server) GetClassRoomsByTeacher(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
 
-	var subjectID = in.Id
-	var teacherID = in.UserID
+	var teacherID = in.Id
 
 	rows, err := s.DB.Query(`
 SELECT classroom_id, title, image, price, badge, description, arabic_title
 	FROM classrooms
-WHERE deleted_at IS NULL AND subject_id = $1 AND teacher_id = $2;
-        `, subjectID, teacherID)
+WHERE deleted_at IS NULL AND teacher_id = $1;
+        `, teacherID)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
@@ -220,18 +224,17 @@ WHERE deleted_at IS NULL AND subject_id = $1 AND teacher_id = $2;
 		}
 		return nil, ErrInternal
 	}
-
-	classRooms := &learning.ClassRooms{}
+	classRooms := new(learning.ClassRooms)
 	var studentsCount int32
 	for rows.Next() {
 		classRoom := &learning.ClassRoom{}
-		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge)
+		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge, &classRoom.Description, &classRoom.ArabicTitle)
 		if err != nil {
 			s.Logger.Error(err.Error())
 			return nil, err
 		}
 		//get students count for this
-		err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom).Scan(&studentsCount)
+		err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom.ClassRoomID).Scan(&studentsCount)
 		if err != nil {
 			s.Logger.Error(err.Error())
 			return nil, err

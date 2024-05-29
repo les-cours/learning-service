@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) CreateChapter(ctx context.Context, in *learning.CreateChapterRequest) (*learning.Chapter, error) {
-
+	s.Logger.Info(in.UserID + " ==  " + in.ClassRoomID)
 	err := userHasClassRoom(s.DB, in.UserID, in.ClassRoomID)
 	if err != nil {
 		s.Logger.Error(err.Error())

@@ -161,6 +161,7 @@ service LearningService {
   rpc CreateClassRooms(CreateClassRoomsRequest)returns (OperationStatus){}
   rpc CreateClassRoom(CreateClassRoomRequest)returns (ClassRoom){}
   rpc GetClassRooms(IDRequest)returns (ClassRooms){}
+  rpc GetClassRoomsByTeacher(IDRequest)returns(ClassRooms){}
   rpc GetMyClassRooms(IDRequest)returns (ClassRooms){} // student -> classrooms
   rpc GetClassRoom(IDRequest)returns (ClassRoom){}
   rpc DeleteClassRoom(IDRequest)returns(OperationStatus){}
