@@ -44,8 +44,16 @@ message ClassRoom {
   float Rating = 7;
   string arabicTitle= 8;
   string description = 9;
+  string arabicDescription = 10;
+  Teacher teacher = 11;
+  Chapters chapters = 12;
 }
 
+message Teacher {
+  string teacherID = 1;
+  string firstname = 2;
+  string lastname = 3;
+}
 
 message ClassRooms {
   repeated ClassRoom classrooms = 1;
@@ -57,11 +65,18 @@ message AddDocumentToClassroomRequest {
 
 
 
+
+
+
+
 message Lesson {
   string lessonID = 1;
   string title = 2;
   string  arabicTitle= 3;
   string description = 4;
+  string arabicDescription = 5;
+  int32 month_id  = 8;
+  Documents documents = 9;
 }
 
 message Lessons{
@@ -102,11 +117,15 @@ message UploadVideoRequest {
 message Chapters {
   repeated Chapter chapters =1 ;
 }
+
+
 message Chapter {
   string chapterID = 1;
   string title = 2;
   string  arabicTitle= 3;
   string description = 4;
+  string arabicDescription = 5;
+  Lessons lessons = 6;
 }
 
 message CreateChapterRequest {
@@ -148,11 +167,17 @@ message Document {
   string title = 4;
   string arabic_title = 5;
   string description = 6;
-  int32 duration = 7;
+  string arabicDescription = 10;
+  Duration duration = 7;
   int32 lecture_number = 8;
   string DocumentLink=9;
 }
-
+message Duration {
+  int32 hours = 1;
+  int32 minutes = 2;
+  int32 seconds = 3;
+  int32 nanoseconds = 4;
+}
 message Documents{
   repeated Document documents = 1;
 }

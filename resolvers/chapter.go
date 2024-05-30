@@ -9,7 +9,6 @@ import (
 )
 
 func (s *Server) CreateChapter(ctx context.Context, in *learning.CreateChapterRequest) (*learning.Chapter, error) {
-	s.Logger.Info(in.UserID + " ==  " + in.ClassRoomID)
 	err := userHasClassRoom(s.DB, in.UserID, in.ClassRoomID)
 	if err != nil {
 		s.Logger.Error(err.Error())
@@ -36,9 +35,8 @@ VALUES ($1,$2,$3,$4,$5)`, ChapterID, in.ClassRoomID, in.Title, in.ArabicTitle, i
 }
 
 func (s *Server) GetChaptersByClassRoom(ctx context.Context, in *learning.IDRequest) (*learning.Chapters, error) {
-
 	rows, err := s.DB.Query(`SELECT 
-    chapter_id, title, arabic_title, description
+    chapter_id, title, arabic_title, description,description_ar
 FROM chapters 
 WHERE classroom_id = $1;`, in.Id)
 	if err != nil {
@@ -49,17 +47,28 @@ WHERE classroom_id = $1;`, in.Id)
 		return nil, ErrInternal
 	}
 
-	chapters := &learning.Chapters{}
+	var chapters = new(learning.Chapters)
 	for rows.Next() {
-		chapter := &learning.Chapter{}
-		err = rows.Scan(&chapter.ChapterID, &chapter.Title, &chapter.ArabicTitle, &chapter.Description)
+		var chapter = new(learning.Chapter)
+		err = rows.Scan(&chapter.ChapterID, &chapter.Title, &chapter.ArabicTitle, &chapter.Description, &chapter.ArabicDescription)
 		if err != nil {
 			s.Logger.Error(err.Error())
 			return nil, ErrInternal
 		}
+		/*
+			Get lessons
+		*/
+		var lessons = new(learning.Lessons)
+		lessons, err = s.GetLessonsByChapter(ctx, &learning.IDRequest{
+			Id: chapter.ChapterID,
+		})
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, ErrInternal
+		}
+		chapter.Lessons = lessons
 		chapters.Chapters = append(chapters.Chapters, chapter)
 	}
-
 	return chapters, nil
 }
 

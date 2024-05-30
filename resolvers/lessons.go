@@ -41,9 +41,8 @@ VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.D
 
 func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest) (*learning.Lessons, error) {
 	var chapterID = in.Id
-	lessons := &learning.Lessons{}
-
-	rows, err := s.DB.Query(`SELECT lesson_id, title, arabic_title, description
+	var lessons = new(learning.Lessons)
+	rows, err := s.DB.Query(`SELECT lesson_id, title, arabic_title, description,description_ar,month_id
 	FROM lessons WHERE chapter_id = $1 AND deleted_at IS  NULL`, chapterID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -55,11 +54,24 @@ func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest
 
 	for rows.Next() {
 		lesson := &learning.Lesson{}
-		err = rows.Scan(&lesson.LessonID, &lesson.Title, &lesson.ArabicTitle, &lesson.Description)
+		err = rows.Scan(&lesson.LessonID, &lesson.Title, &lesson.ArabicTitle, &lesson.Description, &lesson.ArabicDescription, &lesson.MonthId)
 		if err != nil {
 			s.Logger.Error(err.Error())
 			return nil, ErrInternal
 		}
+		/*
+			Get Documents
+		*/
+		documents, err := s.GetPromoDocumentsByLesson(lesson.LessonID)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, ErrInternal
+		}
+		lesson.Documents = documents
+
+		/*
+			Append
+		*/
 		lessons.Lessons = append(lessons.Lessons, lesson)
 	}
 

@@ -41,32 +41,8 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 		return nil, ErrNotFound("subject")
 	}
 
-	rows, err := s.DB.Query(`SELECT g.title ,g.title_ar ,g.department_id FROM grades_subjects 
-                         inner join public.grades g on g.grade_id = grades_subjects.grade_id
-                         WHERE subject_id = $1 
-`, in.SubjectID)
-
-	if err != nil {
-		s.Logger.Error(err.Error())
-		return nil, ErrInternal
-	}
-
-	var arabicGradName string
-	var gradName string
-	var dep string
-	for rows.Next() {
-		err = rows.Scan(&gradName, &arabicGradName, &dep)
-		if err != nil {
-			s.Logger.Error(err.Error())
-
-			return nil, ErrInternal
-		}
-		gradName += " / " + gradName + "( " + dep + " )"
-		arabicGradName += " / " + arabicGradName + "( " + dep + " )"
-	}
-
-	var classRoomName = subjectName + gradName
-	var classRoomArabicName = arabicSubjectName + arabicSubjectName
+	var classRoomName = subjectName
+	var classRoomArabicName = arabicSubjectName
 
 	/*
 		INSERT INTO CLASSROOM THE NEW ONE ...
@@ -93,27 +69,55 @@ func (s *Server) GetClassRooms(ctx context.Context, in *learning.IDRequest) (*le
 
 	var subjectID = in.Id
 
+	//teacher_id uuid NULL,
+	//subject_id character varying(40) NULL,
+
 	rows, err := s.DB.Query(`
-SELECT classroom_id, title, image, price, badge, description, arabic_title
-	FROM classrooms
-WHERE deleted_at IS NULL AND subject_id = $1 ;
+SELECT classroom_id, title, image, price, c.badge, c.description, arabic_title,c.description_ar,t.teacher_id,t.firstname,t.lastname
+	FROM classrooms as c
+	INNER JOIN public.teachers t on t.teacher_id = c.teacher_id
+WHERE c.deleted_at IS NULL AND c.subject_id = $1 ;
         `, subjectID)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return nil, err
 	}
 
-	classRooms := &learning.ClassRooms{}
+	var classRooms = new(learning.ClassRooms)
 	var studentsCount int32
 	for rows.Next() {
-		classRoom := &learning.ClassRoom{}
-		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge)
+
+		var classRoomID, title, image, badge, description, arabicTitle, arabicDescription, teacherID, firstname, lastname string
+		var price int32
+
+		err = rows.Scan(&classRoomID, &title, &image, &price, &badge, &description, &arabicTitle, &arabicDescription, &teacherID, &firstname, &lastname)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+
+		classRoom := &learning.ClassRoom{
+			ClassRoomID:       classRoomID,
+			Title:             title,
+			Image:             image,
+			Price:             price,
+			Badge:             badge,
+			Description:       description,
+			ArabicTitle:       arabicTitle,
+			ArabicDescription: arabicDescription,
+			Teacher: &learning.Teacher{
+				TeacherID: teacherID,
+				Firstname: firstname,
+				Lastname:  lastname,
+			},
+		}
+
 		if err != nil {
 			s.Logger.Error(err.Error())
 			return nil, err
 		}
 		//get students count for this
-		err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom).Scan(&studentsCount)
+		err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom.ClassRoomID).Scan(&studentsCount)
 		if err != nil {
 			s.Logger.Error(err.Error())
 			return nil, err
@@ -128,33 +132,63 @@ WHERE deleted_at IS NULL AND subject_id = $1 ;
 	return classRooms, nil
 }
 
+// GetClassRoom acting  like promo
 func (s *Server) GetClassRoom(ctx context.Context, in *learning.IDRequest) (*learning.ClassRoom, error) {
 
 	var classRoomID = in.Id
-	classRoom := &learning.ClassRoom{}
 	var studentsCount int32
+	var title, image, badge, description, arabicTitle, arabicDescription, teacherID, firstname, lastname string
+	var price int32
+	var err error
 
-	err := s.DB.QueryRow(`
-SELECT classroom_id,title,COALESCE(image, 'default.jpg') AS image,price,COALESCE(badge, '') AS badge
-FROM classrooms 
-WHERE deleted_at IS NULL AND classroom_id = $1;
-        `, classRoomID).Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge)
-
+	err = s.DB.QueryRow(`
+SELECT  title, image, price, c.badge, c.description, arabic_title,c.description_ar,t.teacher_id,t.firstname,t.lastname
+	FROM classrooms as c
+	INNER JOIN public.teachers t on t.teacher_id = c.teacher_id
+WHERE c.deleted_at IS NULL AND c.classroom_id = $1 ;
+        `, classRoomID).Scan(&title, &image, &price, &badge, &description, &arabicTitle, &arabicDescription, &teacherID, &firstname, &lastname)
 	if err != nil {
 		s.Logger.Error(err.Error())
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound("classRooms")
-		}
 		return nil, err
 	}
+
+	classRoom := &learning.ClassRoom{
+		ClassRoomID:       classRoomID,
+		Title:             title,
+		Image:             image,
+		Price:             price,
+		Badge:             badge,
+		Description:       description,
+		ArabicTitle:       arabicTitle,
+		ArabicDescription: arabicDescription,
+		Teacher: &learning.Teacher{
+			TeacherID: teacherID,
+			Firstname: firstname,
+			Lastname:  lastname,
+		},
+	}
+
+	/*
+		Get chapters
+	*/
+
+	chapters, err := s.GetChaptersByClassRoom(ctx, &learning.IDRequest{
+		Id: classRoomID,
+	})
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, err
+	}
+	classRoom.Chapters = chapters
 	//get students count for this
-	err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoomID).Scan(&studentsCount)
+	err = s.DB.QueryRow(`SELECT count(1) FROM subscription WHERE classroom_id = $1`, classRoom.ClassRoomID).Scan(&studentsCount)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return nil, err
 	}
 	classRoom.StudentCount = studentsCount
 	//get Rating  //To Do
+
 	classRoom.Rating = 4.7
 
 	return classRoom, nil
