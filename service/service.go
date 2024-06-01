@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
 	apivideosdk "github.com/apivideo/api.video-go-client"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/api/orgs"
 	"github.com/les-cours/learning-service/api/users"
+	"github.com/les-cours/learning-service/database"
 	"github.com/les-cours/learning-service/env"
 	"github.com/les-cours/learning-service/resolvers"
 	"github.com/prometheus/client_golang/prometheus"
@@ -73,12 +75,19 @@ func Start() {
 		log.Fatalf("Failed to listen on port %v: %v", env.Settings.GrpcPort, err)
 	}
 
-	db, err := StartDatabase()
+	db, err := database.StartDatabase()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer db.Close()
+
+	mongoDB, err := database.StartMongoDB()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	defer db.Close()
+	defer mongoDB.Disconnect(context.Background())
+
 	usersConnectionService, err := grpc.Dial(env.Settings.UserService.Host+":"+env.Settings.UserService.Port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Failed to connect to users service %v", err)
@@ -99,7 +108,10 @@ func Start() {
 	*/
 	videoApiClient := apivideosdk.ClientBuilder("qyxP5tzBo8HJwtDeS0Rh1cbsjQKNZ8XnalyLSSkUsGQ").Build()
 	server := resolvers.Server{
-		DB:       db,
+		DB: db,
+		MongoDB: database.MongoClient{
+			MongoDB: mongoDB,
+		},
 		Users:    users.NewUserServiceClient(usersConnectionService),
 		Orgs:     orgs.NewOrgServiceClient(orgsConnectionService),
 		Logger:   logger,

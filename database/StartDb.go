@@ -1,14 +1,26 @@
-package service
+package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/les-cours/learning-service/env"
-
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 
 	_ "github.com/lib/pq"
 )
+
+type MongoClient struct {
+	MongoDB *mongo.Client
+}
+
+func New(mongo *mongo.Client) *MongoClient {
+	return &MongoClient{
+		MongoDB: mongo,
+	}
+}
 
 func StartDatabase() (*sql.DB, error) {
 	dataSourceName := fmt.Sprintf("host=%s port=%d user=%s "+
@@ -34,4 +46,29 @@ func StartDatabase() (*sql.DB, error) {
 	db.SetMaxOpenConns(7)
 
 	return db, nil
+}
+
+func StartMongoDB() (*mongo.Client, error) {
+	var mongoURI = env.Settings.Database.MongoConfig.URI
+
+	log.Println("mongoURI: ", mongoURI)
+	clientOptions := options.Client().ApplyURI(mongoURI)
+
+	// Connect to MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		log.Printf("Error while connecting to db")
+		log.Fatal(err)
+	}
+
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Printf("Error while connecting to db 2 ")
+		log.Fatal(err)
+	}
+
+	fmt.Println("Connected to MongoDB!")
+
+	return client, nil
 }

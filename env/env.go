@@ -19,6 +19,18 @@ type service struct {
 
 type DatabaseConfig struct {
 	PSQLConfig
+	MongoConfig
+}
+
+type MongoConfig struct {
+	URI        string
+	Host       string
+	ReplicaSet string
+	Username   string
+	Password   string
+	DbName     string
+	Stage      string
+	Tls        string
 }
 
 type PSQLConfig struct {
@@ -52,6 +64,14 @@ func init() {
 	viper.BindEnv("POSTGRES_DBNAME")
 	viper.BindEnv("POSTGRES_SSL_MODE")
 
+	viper.BindEnv("MONGO_HOST")
+	viper.BindEnv("MONGO_REPLICASET")
+	viper.BindEnv("MONGO_USERNAME")
+	viper.BindEnv("MONGO_PASSWORD")
+	viper.BindEnv("MONGO_DBNAME")
+	viper.BindEnv("MONGO_URI")
+	viper.BindEnv("STAGE")
+
 	Settings = &Config{
 		GrpcPort: viper.GetString("GRPC_PORT"),
 		HttpPort: viper.GetString("HTTP_PORT"),
@@ -64,7 +84,16 @@ func init() {
 			Port: viper.GetString("ORGS_SERVICE_PORT"),
 		},
 		Database: &DatabaseConfig{
-			PSQLConfig{
+			MongoConfig: MongoConfig{
+				URI:        viper.GetString("MONGO_URI"),
+				Host:       viper.GetString("MONGO_HOST"),
+				ReplicaSet: viper.GetString("MONGO_REPLICASET"),
+				Username:   viper.GetString("MONGO_USERNAME"),
+				Password:   viper.GetString("MONGO_PASSWORD"),
+				DbName:     viper.GetString("MONGO_DBNAME"),
+				Stage:      viper.GetString("STAGE"),
+			},
+			PSQLConfig: PSQLConfig{
 				Host:     viper.GetString("POSTGRES_HOST"),
 				Port:     viper.GetInt("POSTGRES_PORT"),
 				Username: viper.GetString("POSTGRES_USERNAME"),
