@@ -277,6 +277,17 @@ WHERE deleted_at IS NULL AND teacher_id = $1;
 		//get Rating  //To Do
 
 		classRoom.Rating = 4.7
+
+		chapters, err := s.GetChaptersByClassRoom(ctx, &learning.IDRequest{
+			Id: classRoom.ClassRoomID,
+		})
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+
+		classRoom.Chapters = chapters
+
 		classRooms.Classrooms = append(classRooms.Classrooms, classRoom)
 	}
 

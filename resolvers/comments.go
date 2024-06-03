@@ -2,14 +2,15 @@ package resolvers
 
 import (
 	"context"
-	"errors"
-	"github.com/les-cours/learning-service/api/learning"
-	"github.com/les-cours/learning-service/database"
+	"github.com/les-cours/learning-service/types"
 )
 
-func (s *Server) CreateComment(ctx context.Context, in *learning.CreateVideoRequest) (*learning.Document, error) {
+/*
+add WS
+*/
+func (s *Server) CreateComment(ctx context.Context) error {
 
-	err := s.MongoDB.AddComment(ctx, database.Comment{
+	err := s.MongoDB.AddComment(ctx, types.Comment{
 		ID:         "1",
 		DocumentID: "1",
 		Message:    "test comment",
@@ -19,9 +20,22 @@ func (s *Server) CreateComment(ctx context.Context, in *learning.CreateVideoRequ
 		IsDeleted:  false,
 	})
 
-	if err != nil {
-		return nil, err
-	}
+	return err
+}
 
-	return nil, errors.New("err")
+func (s *Server) GetComments(ctx context.Context, documentID string) ([]*types.Comment, error) {
+
+	//s.MongoDB.GetComments(ctx, documentID)
+	//err := s.MongoDB.AddComment(ctx, types.Comment{
+	//	ID:         "1",
+	//	DocumentID: "1",
+	//	Message:    "test comment",
+	//	Timestamp:  0,
+	//	Owner:      "",
+	//	IsEdited:   false,
+	//	IsDeleted:  false,
+	//})
+	//
+	//return err
+	return nil, nil
 }

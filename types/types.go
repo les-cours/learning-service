@@ -1,4 +1,4 @@
-package database
+package types
 
 //
 //// RepliedMessage Describe the replied message

@@ -2,13 +2,14 @@ package database
 
 import (
 	"context"
+	"github.com/les-cours/learning-service/types"
 )
 
 const MongoDBName = "karini"
 
-func (db *MongoClient) AddComment(ctx context.Context, comment Comment) error {
+func (db *MongoClient) AddComment(ctx context.Context, comment types.Comment) error {
 
-	_, err := db.MongoDB.Database(MongoDBName).Collection(CommentsCollections).InsertOne(ctx, Comment{
+	_, err := db.MongoDB.Database(MongoDBName).Collection(CommentsCollections).InsertOne(ctx, types.Comment{
 		ID:         comment.ID,
 		DocumentID: comment.DocumentID,
 		Message:    comment.Message,
@@ -21,6 +22,204 @@ func (db *MongoClient) AddComment(ctx context.Context, comment Comment) error {
 	return err
 
 }
+
+//func (db *MongoClient) GetComments(ctx context.Context, documentID string) ([]*types.Comment, error) {
+//
+//	res := types.RoomMessages{
+//		Messages: []*types.Message{},
+//	}
+//	context := context.Background()
+//	after := len(pagination.After) > 0
+//	before := len(pagination.Before) > 0
+//	if after && before {
+//		return nil, errors.New("how is that?")
+//	}
+//	firstTime := !after && !before
+//	filter := []bson.M{
+//		{"roomID": roomID},
+//		{"isDeleted": bson.M{"$exists": false}},
+//	}
+//	sort := bson.M{"timestamp": -1}
+//	if !firstTime {
+//		if after {
+//			id, err := primitive.ObjectIDFromHex(pagination.After)
+//			if err != nil {
+//				return nil, errors.New("bad cursor")
+//			}
+//			filter = append(filter, bson.M{"_id": primitive.M{"$gt": id}})
+//			res.Filter.After = pagination.After
+//			res.Filter.Limit = pagination.Limit
+//			sort = bson.M{"timestamp": 1}
+//		} else if before {
+//			id, err := primitive.ObjectIDFromHex(pagination.Before)
+//			if err != nil {
+//				return nil, errors.New("bad cursor")
+//			}
+//			filter = append(filter, bson.M{"_id": primitive.M{"$lt": id}})
+//			res.Filter.Before = pagination.Before
+//			res.Filter.Limit = pagination.Limit
+//		}
+//
+//	} else {
+//		count, err := db.MongoDB.Database(MongoDBName).Collection(accountID).CountDocuments(context, bson.M{"$and": filter})
+//		if err != nil {
+//			return nil, err
+//		}
+//		res.Total = count
+//	}
+//	cursor, err := db.MongoDB.Database(MongoDBName).Collection(accountID).Aggregate(context, []bson.M{
+//		{"$match": bson.M{
+//			"$and": filter,
+//		}},
+//		{"$sort": sort},
+//		{"$limit": pagination.Limit},
+//	})
+//
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	for cursor.Next(context) {
+//		var mongoMessage types.MongoMessageWithID
+//		if err := cursor.Decode(&mongoMessage); err != nil {
+//			continue
+//		}
+//		for _, c := range mongoMessage.Comments {
+//			if c.IsDeleted {
+//				continue
+//			}
+//			var message = types.Message{
+//				ID:                 c.ID,
+//				RoomID:             mongoMessage.RoomID,
+//				Message:            c.Message,
+//				Timestamp:          c.Timestamp,
+//				FormattedTimestamp: c.FormattedTimestamp,
+//				EditedTimestamp:    c.EditedTimestamp,
+//				IsEdited:           c.IsEdited,
+//				IsDeleted:          c.IsDeleted,
+//				Owner:              mongoMessage.Owner,
+//				Bubbles:            []string{},
+//				Attachments:        c.Attachments,
+//				EditHistory:        c.EditHistory,
+//				IsNotification:     false,
+//				IsComment:          true,
+//				TargetMsgID:        mongoMessage.ID,
+//			}
+//			res.Messages = append(res.Messages, &message)
+//		}
+//		var message = types.Message{
+//			ID:              mongoMessage.ID,
+//			RoomID:          mongoMessage.RoomID,
+//			Message:         mongoMessage.Message,
+//			Timestamp:       mongoMessage.Timestamp,
+//			EditedTimestamp: mongoMessage.EditedTimestamp,
+//			IsEdited:        mongoMessage.IsEdited,
+//			IsDeleted:       mongoMessage.IsDeleted,
+//			Owner:           mongoMessage.Owner,
+//			Bubbles:         mongoMessage.Bubbles,
+//			Attachments:     mongoMessage.Attachments,
+//			EditHistory:     mongoMessage.EditHistory,
+//			IsNotification:  mongoMessage.IsNotification,
+//			IsComment:       mongoMessage.IsComment,
+//			IsFile:          mongoMessage.IsFile,
+//			Cursor:          mongoMessage.DBID,
+//		}
+//
+//		if mongoMessage.ReplyMessageID != nil {
+//			var ID, _ = primitive.ObjectIDFromHex(*mongoMessage.ReplyMessageID)
+//			var mongoMessage types.MongoMessage
+//
+//			err := db.MongoDB.Database(MongoDBName).Collection(accountID).FindOne(context, bson.M{
+//				"$and": []bson.M{
+//					{"_id": ID},
+//					{"roomID": roomID},
+//				}}).Decode(&mongoMessage)
+//
+//			if err == nil {
+//				if mongoMessage.IsDeleted {
+//					mongoMessage.Message = "Deleted message"
+//				}
+//
+//				if mongoMessage.Message == "" && len(mongoMessage.Attachments) != 0 {
+//					mongoMessage.Message = "Attachment"
+//				}
+//
+//				message.Replied = &types.RepliedMessage{
+//					ID:      mongoMessage.ID,
+//					Message: mongoMessage.Message,
+//					Owner:   mongoMessage.Owner,
+//				}
+//			}
+//		}
+//
+//		res.Messages = append(res.Messages, &message)
+//	}
+//	return &res, nil
+//
+//
+//	var mongoMessage types.MongoMessage
+//	var err = db.MongoDB.Database(MongoDBName).
+//		Collection(CommentsCollections).
+//		FindOne(context.Background(), bson.M{
+//			"$and": []bson.M{
+//				{"documentID": documentID},
+//			}}).
+//		Decode(&mongoMessage)
+//	if err != nil && err != mongo.ErrNoDocuments {
+//		return nil, err
+//	}
+//
+//	if err != nil {
+//		return nil, ErrMessageDoesNotExist
+//	}
+//
+//	var message = types.Comment{
+//		ID:                 mongoMessage.ID,
+//		RoomID:             mongoMessage.RoomID,
+//		Message:            mongoMessage.Message,
+//		Timestamp:          mongoMessage.Timestamp,
+//		FormattedTimestamp: mongoMessage.FormattedTimestamp,
+//		EditedTimestamp:    mongoMessage.EditedTimestamp,
+//		IsComment:          mongoMessage.IsComment,
+//		IsEdited:           mongoMessage.IsEdited,
+//		IsDeleted:          mongoMessage.IsDeleted,
+//		Owner:              mongoMessage.Owner,
+//		Bubbles:            mongoMessage.Bubbles,
+//		Attachments:        mongoMessage.Attachments,
+//		EditHistory:        mongoMessage.EditHistory,
+//	}
+//	if mongoMessage.ReplyMessageID != nil {
+//		var repliedMessage types.MongoMessage
+//		var ID, _ = primitive.ObjectIDFromHex(*mongoMessage.ReplyMessageID)
+//		var err = db.MongoDB.Database(MongoDBName).
+//			Collection(accountID).
+//			FindOne(context.Background(), bson.M{
+//				"$and": []bson.M{
+//					{"_id": ID},
+//					{"roomID": roomID},
+//				}}).
+//			Decode(&repliedMessage)
+//		if err != nil {
+//			return &message, nil
+//		}
+//
+//		if repliedMessage.IsDeleted {
+//			repliedMessage.Message = "Deleted message"
+//		}
+//
+//		if repliedMessage.Message == "" && len(mongoMessage.Attachments) != 0 {
+//			repliedMessage.Message = "Attachment"
+//		}
+//
+//		message.Replied = &types.RepliedMessage{
+//			ID:      repliedMessage.ID,
+//			Message: repliedMessage.Message,
+//			Owner:   repliedMessage.Owner,
+//		}
+//	}
+//
+//	return &message, nil
+//}
 
 /*
 // AddMessage Add message of a room, it returns a mongodb error if any error occured or it return
