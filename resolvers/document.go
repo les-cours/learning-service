@@ -118,16 +118,11 @@ func (s *Server) DeleteDocument(ctx context.Context, in *learning.IDRequest) (*l
 
 func (s *Server) GetDocumentsByTeacher(ctx context.Context, in *learning.IDRequest) (*learning.Documents, error) {
 
-	var lessonID string
 	var err error
 
-	err = s.DB.QueryRow(`SELECT lesson_id from documents where document_id = $1;`, in.Id).Scan(&lessonID)
+	err = userHasLesson(s.DB, in.UserID, in.Id)
 	if err != nil {
-		return nil, ErrNotFound("documents")
-	}
-
-	err = userHasLesson(s.DB, in.UserID, lessonID)
-	if err != nil {
+		s.Logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -138,7 +133,7 @@ ORDER BY lecture_number;`, in.Id)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound("documents")
+			return &learning.Documents{}, nil
 		}
 		return nil, ErrInternal
 	}

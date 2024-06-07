@@ -40,7 +40,6 @@ type LearningServiceClient interface {
 	CreateLesson(ctx context.Context, in *CreateLessonRequest, opts ...grpc.CallOption) (*Lesson, error)
 	UpdateLesson(ctx context.Context, in *UpdateLessonRequest, opts ...grpc.CallOption) (*Lesson, error)
 	DeleteLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
-	GetLessonsByStudent(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*StudentLessons, error)
 	GetDocuments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error)
 	GetDocument(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*DocumentLink, error)
 	DeleteDocument(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
@@ -200,15 +199,6 @@ func (c *learningServiceClient) DeleteLesson(ctx context.Context, in *IDRequest,
 	return out, nil
 }
 
-func (c *learningServiceClient) GetLessonsByStudent(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*StudentLessons, error) {
-	out := new(StudentLessons)
-	err := c.cc.Invoke(ctx, "/learning.LearningService/GetLessonsByStudent", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *learningServiceClient) GetDocuments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error) {
 	out := new(Documents)
 	err := c.cc.Invoke(ctx, "/learning.LearningService/GetDocuments", in, out, opts...)
@@ -276,7 +266,6 @@ type LearningServiceServer interface {
 	CreateLesson(context.Context, *CreateLessonRequest) (*Lesson, error)
 	UpdateLesson(context.Context, *UpdateLessonRequest) (*Lesson, error)
 	DeleteLesson(context.Context, *IDRequest) (*OperationStatus, error)
-	GetLessonsByStudent(context.Context, *IDRequest) (*StudentLessons, error)
 	GetDocuments(context.Context, *IDRequest) (*Documents, error)
 	GetDocument(context.Context, *IDRequest) (*DocumentLink, error)
 	DeleteDocument(context.Context, *IDRequest) (*OperationStatus, error)
@@ -336,9 +325,6 @@ func (UnimplementedLearningServiceServer) UpdateLesson(context.Context, *UpdateL
 }
 func (UnimplementedLearningServiceServer) DeleteLesson(context.Context, *IDRequest) (*OperationStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteLesson not implemented")
-}
-func (UnimplementedLearningServiceServer) GetLessonsByStudent(context.Context, *IDRequest) (*StudentLessons, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLessonsByStudent not implemented")
 }
 func (UnimplementedLearningServiceServer) GetDocuments(context.Context, *IDRequest) (*Documents, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDocuments not implemented")
@@ -656,24 +642,6 @@ func _LearningService_DeleteLesson_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LearningService_GetLessonsByStudent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IDRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LearningServiceServer).GetLessonsByStudent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/learning.LearningService/GetLessonsByStudent",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LearningServiceServer).GetLessonsByStudent(ctx, req.(*IDRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _LearningService_GetDocuments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IDRequest)
 	if err := dec(in); err != nil {
@@ -834,10 +802,6 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteLesson",
 			Handler:    _LearningService_DeleteLesson_Handler,
-		},
-		{
-			MethodName: "GetLessonsByStudent",
-			Handler:    _LearningService_GetLessonsByStudent_Handler,
 		},
 		{
 			MethodName: "GetDocuments",

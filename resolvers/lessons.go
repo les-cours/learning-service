@@ -6,7 +6,6 @@ import (
 	"errors"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/utils"
-	"go.uber.org/zap"
 	"log"
 )
 
@@ -42,7 +41,7 @@ VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.D
 func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest) (*learning.Lessons, error) {
 	var chapterID = in.Id
 	var lessons = new(learning.Lessons)
-	rows, err := s.DB.Query(`SELECT lesson_id, title, arabic_title, description,description_ar,month_id
+	rows, err := s.DB.Query(`SELECT lesson_id, title, arabic_title, description,description_ar
 	FROM lessons WHERE chapter_id = $1 AND deleted_at IS  NULL`, chapterID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -54,15 +53,25 @@ func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest
 
 	for rows.Next() {
 		var lesson = new(learning.Lesson)
-		err = rows.Scan(&lesson.LessonID, &lesson.Title, &lesson.ArabicTitle, &lesson.Description, &lesson.ArabicDescription, &lesson.MonthId)
+		err = rows.Scan(&lesson.LessonID, &lesson.Title, &lesson.ArabicTitle, &lesson.Description, &lesson.ArabicDescription)
 		if err != nil {
 			s.Logger.Error(err.Error())
 			return nil, ErrInternal
 		}
 
+		documents, err := s.GetDocumentsByTeacher(ctx, &learning.IDRequest{
+			Id:     lesson.LessonID,
+			UserID: in.UserID,
+		})
+
+		if err == nil {
+			lesson.Documents = documents
+		}
+
 		/*
 			Append
 		*/
+
 		lessons.Lessons = append(lessons.Lessons, lesson)
 	}
 
@@ -143,7 +152,7 @@ func userHasLesson(db *sql.DB, userID, lessonID string) error {
 `, userID, lessonID).Scan(&has)
 
 	if err != nil {
-		return ErrInternal
+		return err
 	}
 
 	if has {
@@ -152,39 +161,6 @@ func userHasLesson(db *sql.DB, userID, lessonID string) error {
 
 	return ErrPermission
 }
-
-/*
-FOR STUDENTS
-*/
-
-func (s *Server) GetLessonsByStudent(ctx context.Context, in *learning.IDRequest) (*learning.StudentLessons, error) {
-	lessons, err := s.GetLessonsByChapter(ctx, in)
-	if err != nil {
-		s.Logger.Error(err.Error())
-		return nil, err
-	}
-
-	studentLessons := &learning.StudentLessons{}
-	var canAccess bool
-	for _, lesson := range lessons.Lessons {
-		studentLesson := &learning.StudentLesson{}
-		studentLesson.Lesson = lesson
-		canAccess, err = canAccessToLesson(s.DB, in.UserID, lesson.LessonID)
-		s.Logger.Info(lesson.LessonID, zap.Bool("canAccess : ", canAccess), zap.String("id ", in.UserID))
-		if err != nil {
-			s.Logger.Error(err.Error())
-			return nil, ErrInternal
-		}
-
-		if canAccess {
-			studentLesson.CanAccess = true
-		}
-		studentLessons.Lessons = append(studentLessons.Lessons, studentLesson)
-	}
-
-	return studentLessons, nil
-}
-
 func canAccessToLesson(db *sql.DB, studentID, lessonID string) (bool, error) {
 
 	var has bool

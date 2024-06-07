@@ -63,33 +63,19 @@ message AddDocumentToClassroomRequest {
   string classRoomID = 1;
 }
 
-
-
-
-
-
-
 message Lesson {
   string lessonID = 1;
   string title = 2;
   string  arabicTitle= 3;
   string description = 4;
   string arabicDescription = 5;
-  int32 month_id  = 8;
+  Documents documents = 6;
 }
 
 message Lessons{
   repeated Lesson lessons = 1;
 }
 
-message StudentLesson {
-  Lesson lesson = 1;
-  bool canAccess = 2;
-}
-
-message StudentLessons{
-  repeated StudentLesson lessons = 1;
-}
 
 message CreateLessonRequest{
   string userID = 6;
@@ -224,7 +210,6 @@ service LearningService {
   rpc CreateLesson(CreateLessonRequest)returns (Lesson){}
   rpc UpdateLesson(UpdateLessonRequest)returns (Lesson){}
   rpc DeleteLesson(IDRequest)returns (OperationStatus){}
-  rpc GetLessonsByStudent(IDRequest)returns(StudentLessons){}
   /*
    DOCUMENT
 */

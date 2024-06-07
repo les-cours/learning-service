@@ -61,7 +61,8 @@ WHERE classroom_id = $1;`, in.Id)
 		*/
 		var lessons = new(learning.Lessons)
 		lessons, err = s.GetLessonsByChapter(ctx, &learning.IDRequest{
-			Id: chapter.ChapterID,
+			Id:     chapter.ChapterID,
+			UserID: in.UserID,
 		})
 		if err != nil {
 			s.Logger.Error(err.Error())

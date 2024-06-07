@@ -279,7 +279,8 @@ WHERE deleted_at IS NULL AND teacher_id = $1;
 		classRoom.Rating = 4.7
 
 		chapters, err := s.GetChaptersByClassRoom(ctx, &learning.IDRequest{
-			Id: classRoom.ClassRoomID,
+			Id:     classRoom.ClassRoomID,
+			UserID: teacherID,
 		})
 		if err != nil {
 			s.Logger.Error(err.Error())
