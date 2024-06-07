@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/les-cours/learning-service/api/learning"
-	"time"
 )
 
 func (s *Server) GetDocuments(ctx context.Context, in *learning.IDRequest) (*learning.Documents, error) {
@@ -24,7 +23,7 @@ ORDER BY lecture_number;`, in.Id)
 
 	var documentID, documentType, title, arabicTitle, description, arabicDescription string
 	var lectureNumber int32
-	var duration time.Time
+	var duration sql.NullTime
 
 	var documents = new(learning.Documents)
 
@@ -42,15 +41,18 @@ ORDER BY lecture_number;`, in.Id)
 			ArabicTitle:       arabicTitle,
 			Description:       description,
 			ArabicDescription: arabicDescription,
-			Duration: &learning.Duration{
-				Hours:       int32(duration.Hour()),
-				Minutes:     int32(duration.Minute()),
-				Seconds:     int32(duration.Second()),
-				Nanoseconds: int32(duration.Nanosecond()),
-			},
-			LectureNumber: lectureNumber,
+			LectureNumber:     lectureNumber,
 		}
 
+		if documentType == "video" {
+			d := duration.Time
+			document.Duration = &learning.Duration{
+				Hours:       int32(d.Hour()),
+				Minutes:     int32(d.Minute()),
+				Seconds:     int32(d.Second()),
+				Nanoseconds: int32(d.Nanosecond()),
+			}
+		}
 		documents.Documents = append(documents.Documents, document)
 	}
 

@@ -53,7 +53,7 @@ func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest
 	}
 
 	for rows.Next() {
-		lesson := &learning.Lesson{}
+		var lesson = new(learning.Lesson)
 		err = rows.Scan(&lesson.LessonID, &lesson.Title, &lesson.ArabicTitle, &lesson.Description, &lesson.ArabicDescription, &lesson.MonthId)
 		if err != nil {
 			s.Logger.Error(err.Error())
