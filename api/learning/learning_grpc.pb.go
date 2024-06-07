@@ -41,9 +41,11 @@ type LearningServiceClient interface {
 	UpdateLesson(ctx context.Context, in *UpdateLessonRequest, opts ...grpc.CallOption) (*Lesson, error)
 	DeleteLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	GetLessonsByStudent(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*StudentLessons, error)
-	// DOCUMENT
+	GetDocuments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error)
+	GetDocument(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*DocumentLink, error)
+	DeleteDocument(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	CreateVideo(ctx context.Context, in *CreateVideoRequest, opts ...grpc.CallOption) (*Document, error)
-	GetDocumentsByLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error)
+	CreatePdf(ctx context.Context, in *CreatePdfRequest, opts ...grpc.CallOption) (*Document, error)
 }
 
 type learningServiceClient struct {
@@ -207,6 +209,33 @@ func (c *learningServiceClient) GetLessonsByStudent(ctx context.Context, in *IDR
 	return out, nil
 }
 
+func (c *learningServiceClient) GetDocuments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error) {
+	out := new(Documents)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetDocuments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) GetDocument(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*DocumentLink, error) {
+	out := new(DocumentLink)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetDocument", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) DeleteDocument(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error) {
+	out := new(OperationStatus)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/DeleteDocument", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *learningServiceClient) CreateVideo(ctx context.Context, in *CreateVideoRequest, opts ...grpc.CallOption) (*Document, error) {
 	out := new(Document)
 	err := c.cc.Invoke(ctx, "/learning.LearningService/CreateVideo", in, out, opts...)
@@ -216,9 +245,9 @@ func (c *learningServiceClient) CreateVideo(ctx context.Context, in *CreateVideo
 	return out, nil
 }
 
-func (c *learningServiceClient) GetDocumentsByLesson(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Documents, error) {
-	out := new(Documents)
-	err := c.cc.Invoke(ctx, "/learning.LearningService/GetDocumentsByLesson", in, out, opts...)
+func (c *learningServiceClient) CreatePdf(ctx context.Context, in *CreatePdfRequest, opts ...grpc.CallOption) (*Document, error) {
+	out := new(Document)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/CreatePdf", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -248,9 +277,11 @@ type LearningServiceServer interface {
 	UpdateLesson(context.Context, *UpdateLessonRequest) (*Lesson, error)
 	DeleteLesson(context.Context, *IDRequest) (*OperationStatus, error)
 	GetLessonsByStudent(context.Context, *IDRequest) (*StudentLessons, error)
-	// DOCUMENT
+	GetDocuments(context.Context, *IDRequest) (*Documents, error)
+	GetDocument(context.Context, *IDRequest) (*DocumentLink, error)
+	DeleteDocument(context.Context, *IDRequest) (*OperationStatus, error)
 	CreateVideo(context.Context, *CreateVideoRequest) (*Document, error)
-	GetDocumentsByLesson(context.Context, *IDRequest) (*Documents, error)
+	CreatePdf(context.Context, *CreatePdfRequest) (*Document, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
 
@@ -309,11 +340,20 @@ func (UnimplementedLearningServiceServer) DeleteLesson(context.Context, *IDReque
 func (UnimplementedLearningServiceServer) GetLessonsByStudent(context.Context, *IDRequest) (*StudentLessons, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLessonsByStudent not implemented")
 }
+func (UnimplementedLearningServiceServer) GetDocuments(context.Context, *IDRequest) (*Documents, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDocuments not implemented")
+}
+func (UnimplementedLearningServiceServer) GetDocument(context.Context, *IDRequest) (*DocumentLink, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDocument not implemented")
+}
+func (UnimplementedLearningServiceServer) DeleteDocument(context.Context, *IDRequest) (*OperationStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteDocument not implemented")
+}
 func (UnimplementedLearningServiceServer) CreateVideo(context.Context, *CreateVideoRequest) (*Document, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVideo not implemented")
 }
-func (UnimplementedLearningServiceServer) GetDocumentsByLesson(context.Context, *IDRequest) (*Documents, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDocumentsByLesson not implemented")
+func (UnimplementedLearningServiceServer) CreatePdf(context.Context, *CreatePdfRequest) (*Document, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePdf not implemented")
 }
 func (UnimplementedLearningServiceServer) mustEmbedUnimplementedLearningServiceServer() {}
 
@@ -634,6 +674,60 @@ func _LearningService_GetLessonsByStudent_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearningService_GetDocuments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetDocuments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetDocuments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetDocuments(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_GetDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetDocument",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetDocument(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_DeleteDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).DeleteDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/DeleteDocument",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).DeleteDocument(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LearningService_CreateVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateVideoRequest)
 	if err := dec(in); err != nil {
@@ -652,20 +746,20 @@ func _LearningService_CreateVideo_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LearningService_GetDocumentsByLesson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IDRequest)
+func _LearningService_CreatePdf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePdfRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LearningServiceServer).GetDocumentsByLesson(ctx, in)
+		return srv.(LearningServiceServer).CreatePdf(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/learning.LearningService/GetDocumentsByLesson",
+		FullMethod: "/learning.LearningService/CreatePdf",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LearningServiceServer).GetDocumentsByLesson(ctx, req.(*IDRequest))
+		return srv.(LearningServiceServer).CreatePdf(ctx, req.(*CreatePdfRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -746,12 +840,24 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LearningService_GetLessonsByStudent_Handler,
 		},
 		{
+			MethodName: "GetDocuments",
+			Handler:    _LearningService_GetDocuments_Handler,
+		},
+		{
+			MethodName: "GetDocument",
+			Handler:    _LearningService_GetDocument_Handler,
+		},
+		{
+			MethodName: "DeleteDocument",
+			Handler:    _LearningService_DeleteDocument_Handler,
+		},
+		{
 			MethodName: "CreateVideo",
 			Handler:    _LearningService_CreateVideo_Handler,
 		},
 		{
-			MethodName: "GetDocumentsByLesson",
-			Handler:    _LearningService_GetDocumentsByLesson_Handler,
+			MethodName: "CreatePdf",
+			Handler:    _LearningService_CreatePdf_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

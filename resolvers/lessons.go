@@ -59,15 +59,6 @@ func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest
 			s.Logger.Error(err.Error())
 			return nil, ErrInternal
 		}
-		/*
-			Get Documents
-		*/
-		documents, err := s.GetPromoDocumentsByLesson(lesson.LessonID)
-		if err != nil {
-			s.Logger.Error(err.Error())
-			return nil, ErrInternal
-		}
-		lesson.Documents = documents
 
 		/*
 			Append
@@ -209,8 +200,8 @@ func canAccessToLesson(db *sql.DB, studentID, lessonID string) (bool, error) {
 );
 `, studentID, lessonID).Scan(&has)
 
-	log.Printf("s : %s,l: %s , has ; %v", lessonID, studentID, has)
 	if err != nil {
+		log.Println("lessons.go:213 | ", err.Error())
 		return false, ErrInternal
 	}
 	return has, nil

@@ -76,7 +76,6 @@ message Lesson {
   string description = 4;
   string arabicDescription = 5;
   int32 month_id  = 8;
-  Documents documents = 9;
 }
 
 message Lessons{
@@ -161,6 +160,18 @@ message CreateVideoRequest {
   UploadVideoRequest video = 9;
 }
 
+message  CreatePdfRequest {
+  string userID = 1;
+  string lessonID = 2;
+  string title = 4;
+  string arabic_title = 5;
+  string description = 6;
+  string arabicDescription = 7;
+  int32  lecture_number = 8;
+  string url = 9;
+}
+
+
 message Document {
   string documentID = 1;
   string documentType = 3;
@@ -172,6 +183,11 @@ message Document {
   int32 lecture_number = 8;
   string DocumentLink=9;
 }
+
+message DocumentLink {
+  string DocumentLink = 1;
+}
+
 message Duration {
   int32 hours = 1;
   int32 minutes = 2;
@@ -212,8 +228,15 @@ service LearningService {
   /*
    DOCUMENT
 */
+
+  rpc GetDocuments(IDRequest)returns (Documents){}
+  rpc GetDocument(IDRequest)returns (DocumentLink){}
+  rpc DeleteDocument(IDRequest)returns (OperationStatus){}
+
   rpc CreateVideo(CreateVideoRequest)returns (Document){}
-  rpc GetDocumentsByLesson(IDRequest)returns (Documents){}
+
+  rpc CreatePdf(CreatePdfRequest)returns (Document){}
+
 
 
 }
