@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/utils"
+	"log"
 )
 
 func (s *Server) CreateChapter(ctx context.Context, in *learning.CreateChapterRequest) (*learning.Chapter, error) {
@@ -172,6 +173,7 @@ func userHasChapter(db *sql.DB, userID, chapterID string) error {
 	);`, userID, chapterID).Scan(&has)
 
 	if err != nil {
+		log.Println(err.Error())
 		return ErrInternal
 	}
 

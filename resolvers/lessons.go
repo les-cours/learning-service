@@ -15,7 +15,7 @@ func (s *Server) CreateLesson(ctx context.Context, in *learning.CreateLessonRequ
 	err := userHasChapter(s.DB, in.UserID, in.ChapterID)
 	if err != nil {
 		s.Logger.Error(err.Error())
-		return nil, ErrInternal
+		return nil, err
 	}
 
 	lessonID := utils.GenerateUUIDString()
