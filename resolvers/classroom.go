@@ -173,7 +173,8 @@ WHERE c.deleted_at IS NULL AND c.classroom_id = $1 ;
 	*/
 
 	chapters, err := s.GetChaptersByClassRoom(ctx, &learning.IDRequest{
-		Id: classRoomID,
+		Id:     classRoomID,
+		UserID: in.UserID,
 	})
 	if err != nil {
 		s.Logger.Error(err.Error())

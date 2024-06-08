@@ -9,6 +9,12 @@ import (
 
 func (s *Server) GetDocuments(ctx context.Context, in *learning.IDRequest) (*learning.Documents, error) {
 
+	err := userHasLesson(s.DB, in.UserID, in.Id)
+	if err == nil {
+		return GetDocumentsForTeacher(s.DB, in.Id)
+	}
+
+	//get documents for students
 	rows, err := s.DB.Query(`SELECT document_id, document_type, title, arabic_title, description, description_ar, duration, lecture_number
 FROM documents 
 WHERE lesson_id = $1
@@ -116,22 +122,15 @@ func (s *Server) DeleteDocument(ctx context.Context, in *learning.IDRequest) (*l
 
 }
 
-func (s *Server) GetDocumentsByTeacher(ctx context.Context, in *learning.IDRequest) (*learning.Documents, error) {
+func GetDocumentsForTeacher(db *sql.DB, lessonsID string) (*learning.Documents, error) {
 
 	var err error
 
-	err = userHasLesson(s.DB, in.UserID, in.Id)
-	if err != nil {
-		s.Logger.Error(err.Error())
-		return nil, err
-	}
-
-	rows, err := s.DB.Query(`SELECT document_id, document_type, title, arabic_title, description, description_ar, duration, lecture_number,document_link
+	rows, err := db.Query(`SELECT document_id, document_type, title, arabic_title, description, description_ar, duration, lecture_number,document_link
 FROM documents 
 WHERE lesson_id = $1
-ORDER BY lecture_number;`, in.Id)
+ORDER BY lecture_number;`, lessonsID)
 	if err != nil {
-		s.Logger.Error(err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
 			return &learning.Documents{}, nil
 		}
@@ -147,7 +146,6 @@ ORDER BY lecture_number;`, in.Id)
 	for rows.Next() {
 		err = rows.Scan(&documentID, &documentType, &title, &arabicTitle, &description, &arabicDescription, &duration, &lectureNumber, &documentLink)
 		if err != nil {
-			s.Logger.Error(err.Error())
 			return nil, ErrInternal
 		}
 
@@ -159,6 +157,7 @@ ORDER BY lecture_number;`, in.Id)
 			Description:       description,
 			ArabicDescription: arabicDescription,
 			LectureNumber:     lectureNumber,
+			DocumentLink:      documentLink,
 		}
 
 		if documentType == "video" {

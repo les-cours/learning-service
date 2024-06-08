@@ -39,6 +39,7 @@ VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.D
 }
 
 func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest) (*learning.Lessons, error) {
+
 	var chapterID = in.Id
 	var lessons = new(learning.Lessons)
 	rows, err := s.DB.Query(`SELECT lesson_id, title, arabic_title, description,description_ar
@@ -59,19 +60,26 @@ func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest
 			return nil, ErrInternal
 		}
 
-		documents, err := s.GetDocumentsByTeacher(ctx, &learning.IDRequest{
+		var documents = new(learning.Documents)
+		lesson.Documents = documents
+
+		documents, err = s.GetDocuments(ctx, &learning.IDRequest{
 			Id:     lesson.LessonID,
 			UserID: in.UserID,
 		})
 
-		if err == nil {
-			lesson.Documents = documents
+		if err != nil {
+			s.Logger.Error(err.Error())
+			goto APPEND
 		}
+
+		lesson.Documents = documents
 
 		/*
 			Append
 		*/
 
+	APPEND:
 		lessons.Lessons = append(lessons.Lessons, lesson)
 	}
 
