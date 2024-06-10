@@ -49,8 +49,8 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 	*/
 	_, err = s.DB.Exec(`INSERT INTO 
     classrooms 
-    (classroom_id, teacher_id, subject_id, arabic_title,title,price,image) 
-     VALUES ($1,$2,$3,$4,$5,$6)`, classRoomID, in.TeacherID, in.SubjectID, classRoomArabicName, classRoomName, 1500, "https://firebasestorage.googleapis.com/v0/b/uploadingfile-90303.appspot.com/o/images%2F20240603_162237.png?alt=media&token=bc88a8a0-9a22-4c4c-aa68-0b07272db797")
+    (classroom_id, teacher_id, subject_id, arabic_title,title,price,image,badge) 
+     VALUES ($1,$2,$3,$4,$5,$6,$7)`, classRoomID, in.TeacherID, in.SubjectID, classRoomArabicName, classRoomName, 1500, "https://firebasestorage.googleapis.com/v0/b/uploadingfile-90303.appspot.com/o/images%2F20240603_162237.png?alt=media&token=bc88a8a0-9a22-4c4c-aa68-0b07272db797", "")
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return nil, ErrInternal
