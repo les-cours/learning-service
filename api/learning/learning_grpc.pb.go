@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type LearningServiceClient interface {
 	CreateClassRooms(ctx context.Context, in *CreateClassRoomsRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error)
+	UpdateClassRoom(ctx context.Context, in *UpdateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error)
 	GetClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
 	GetClassRoomsByTeacher(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
 	GetMyClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
@@ -67,6 +68,15 @@ func (c *learningServiceClient) CreateClassRooms(ctx context.Context, in *Create
 func (c *learningServiceClient) CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error) {
 	out := new(ClassRoom)
 	err := c.cc.Invoke(ctx, "/learning.LearningService/CreateClassRoom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) UpdateClassRoom(ctx context.Context, in *UpdateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error) {
+	out := new(ClassRoom)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/UpdateClassRoom", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -250,6 +260,7 @@ func (c *learningServiceClient) CreatePdf(ctx context.Context, in *CreatePdfRequ
 type LearningServiceServer interface {
 	CreateClassRooms(context.Context, *CreateClassRoomsRequest) (*OperationStatus, error)
 	CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error)
+	UpdateClassRoom(context.Context, *UpdateClassRoomRequest) (*ClassRoom, error)
 	GetClassRooms(context.Context, *IDRequest) (*ClassRooms, error)
 	GetClassRoomsByTeacher(context.Context, *IDRequest) (*ClassRooms, error)
 	GetMyClassRooms(context.Context, *IDRequest) (*ClassRooms, error)
@@ -283,6 +294,9 @@ func (UnimplementedLearningServiceServer) CreateClassRooms(context.Context, *Cre
 }
 func (UnimplementedLearningServiceServer) CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateClassRoom not implemented")
+}
+func (UnimplementedLearningServiceServer) UpdateClassRoom(context.Context, *UpdateClassRoomRequest) (*ClassRoom, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateClassRoom not implemented")
 }
 func (UnimplementedLearningServiceServer) GetClassRooms(context.Context, *IDRequest) (*ClassRooms, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetClassRooms not implemented")
@@ -386,6 +400,24 @@ func _LearningService_CreateClassRoom_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LearningServiceServer).CreateClassRoom(ctx, req.(*CreateClassRoomRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_UpdateClassRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateClassRoomRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).UpdateClassRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/UpdateClassRoom",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).UpdateClassRoom(ctx, req.(*UpdateClassRoomRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -746,6 +778,10 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateClassRoom",
 			Handler:    _LearningService_CreateClassRoom_Handler,
+		},
+		{
+			MethodName: "UpdateClassRoom",
+			Handler:    _LearningService_UpdateClassRoom_Handler,
 		},
 		{
 			MethodName: "GetClassRooms",

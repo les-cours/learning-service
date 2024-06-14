@@ -49,6 +49,18 @@ message ClassRoom {
   Chapters chapters = 12;
 }
 
+
+message UpdateClassRoomRequest {
+  string teacherID = 11;
+  string classRoomID = 1;
+  string title = 2;
+  string image = 3;
+  int32 price = 4;
+  string arabicTitle= 8;
+  string description = 9;
+  string arabicDescription = 10;
+}
+
 message Teacher {
   string teacherID = 1;
   string firstname = 2;
@@ -187,6 +199,7 @@ message Documents{
 service LearningService {
   rpc CreateClassRooms(CreateClassRoomsRequest)returns (OperationStatus){}
   rpc CreateClassRoom(CreateClassRoomRequest)returns (ClassRoom){}
+  rpc UpdateClassRoom(UpdateClassRoomRequest)returns (ClassRoom){}
   rpc GetClassRooms(IDRequest)returns (ClassRooms){}
   rpc GetClassRoomsByTeacher(IDRequest)returns(ClassRooms){}
   rpc GetMyClassRooms(IDRequest)returns (ClassRooms){} // student -> classrooms
@@ -219,9 +232,6 @@ service LearningService {
   rpc DeleteDocument(IDRequest)returns (OperationStatus){}
 
   rpc CreateVideo(CreateVideoRequest)returns (Document){}
-
   rpc CreatePdf(CreatePdfRequest)returns (Document){}
-
-
 
 }

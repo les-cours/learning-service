@@ -195,6 +195,28 @@ WHERE c.deleted_at IS NULL AND c.classroom_id = $1 ;
 	return classRoom, nil
 }
 
+func (s *Server) UpdateClassRoom(ctx context.Context, in *learning.UpdateClassRoomRequest) (*learning.ClassRoom, error) {
+
+	err := userHasClassRoom(s.DB, in.TeacherID, in.ClassRoomID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.DB.Exec(`UPDATE classrooms SET title = $2, image = $3, price = $4, arabic_title = $5, description = $6, description_ar = $7 WHERE classroom_id = $1;
+`, in.ClassRoomID, in.Title, in.Image, in.Price, in.ArabicTitle, in.Description, in.ArabicDescription)
+
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrNotFound("subject")
+	}
+
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+
+	return s.GetClassRoom(ctx, &learning.IDRequest{Id: in.ClassRoomID})
+}
+
 func (s *Server) DeleteClassRoom(ctx context.Context, in *learning.IDRequest) (*learning.OperationStatus, error) {
 	err := userHasClassRoom(s.DB, in.UserID, in.Id)
 	if err != nil {
