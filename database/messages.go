@@ -24,9 +24,13 @@ func (db *MongoClient) AddComment(ctx context.Context, comment *types.Comment) e
 
 }
 
-func (db *MongoClient) GetComments(ctx context.Context, documentID string) ([]*types.Comment, error) {
+func (db *MongoClient) GetComments(ctx context.Context, id string, replied bool) ([]*types.Comment, error) {
 
-	filter := bson.D{{"documentid", documentID}}
+	filter := bson.D{{"documentid", id}}
+	if replied {
+		filter = bson.D{{"repliedto", id}}
+	}
+
 	var comments []*types.Comment
 	cur, err := db.MongoDB.Database(MongoDBName).Collection(CommentsCollections).Find(ctx, filter)
 	if err != nil {

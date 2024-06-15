@@ -34,7 +34,33 @@ func (s *Server) CreateComment(ctx context.Context, in *learning.CreateCommentRe
 
 func (s *Server) GetComments(ctx context.Context, in *learning.IDRequest) (*learning.Comments, error) {
 
-	comments, err := s.MongoDB.GetComments(ctx, in.Id)
+	comments, err := s.MongoDB.GetComments(ctx, in.Id, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var apiComments = new(learning.Comments)
+
+	for _, comment := range comments {
+		apiComments.Comments = append(apiComments.Comments, &learning.Comment{
+			Id:         comment.ID,
+			UserID:     comment.UserID,
+			RepliedTo:  comment.RepliedTo,
+			Content:    comment.Content,
+			DocumentID: comment.DocumentID,
+			Timestamp:  comment.Timestamp.Unix(),
+			Edited:     comment.Edited,
+			IsTeacher:  comment.IsTeacher,
+		})
+	}
+
+	return apiComments, nil
+}
+
+func (s *Server) GetRepliedComments(ctx context.Context, in *learning.IDRequest) (*learning.Comments, error) {
+
+	comments, err := s.MongoDB.GetComments(ctx, in.Id, true)
 
 	if err != nil {
 		return nil, err

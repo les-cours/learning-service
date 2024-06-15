@@ -260,6 +260,6 @@ service LearningService {
   rpc CreatePdf(CreatePdfRequest)returns (Document){}
   rpc CreateComment(CreateCommentRequest)returns (OperationStatus){}
   rpc GetComments(IDRequest)returns (Comments){}
-
+  rpc GetRepliedComments(IDRequest)returns (Comments){}
 
 }

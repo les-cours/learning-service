@@ -48,6 +48,7 @@ type LearningServiceClient interface {
 	CreatePdf(ctx context.Context, in *CreatePdfRequest, opts ...grpc.CallOption) (*Document, error)
 	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	GetComments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Comments, error)
+	GetRepliedComments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Comments, error)
 }
 
 type learningServiceClient struct {
@@ -274,6 +275,15 @@ func (c *learningServiceClient) GetComments(ctx context.Context, in *IDRequest, 
 	return out, nil
 }
 
+func (c *learningServiceClient) GetRepliedComments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Comments, error) {
+	out := new(Comments)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetRepliedComments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearningServiceServer is the server API for LearningService service.
 // All implementations must embed UnimplementedLearningServiceServer
 // for forward compatibility
@@ -304,6 +314,7 @@ type LearningServiceServer interface {
 	CreatePdf(context.Context, *CreatePdfRequest) (*Document, error)
 	CreateComment(context.Context, *CreateCommentRequest) (*OperationStatus, error)
 	GetComments(context.Context, *IDRequest) (*Comments, error)
+	GetRepliedComments(context.Context, *IDRequest) (*Comments, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
 
@@ -382,6 +393,9 @@ func (UnimplementedLearningServiceServer) CreateComment(context.Context, *Create
 }
 func (UnimplementedLearningServiceServer) GetComments(context.Context, *IDRequest) (*Comments, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetComments not implemented")
+}
+func (UnimplementedLearningServiceServer) GetRepliedComments(context.Context, *IDRequest) (*Comments, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRepliedComments not implemented")
 }
 func (UnimplementedLearningServiceServer) mustEmbedUnimplementedLearningServiceServer() {}
 
@@ -828,6 +842,24 @@ func _LearningService_GetComments_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearningService_GetRepliedComments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetRepliedComments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetRepliedComments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetRepliedComments(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearningService_ServiceDesc is the grpc.ServiceDesc for LearningService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -930,6 +962,10 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetComments",
 			Handler:    _LearningService_GetComments_Handler,
+		},
+		{
+			MethodName: "GetRepliedComments",
+			Handler:    _LearningService_GetRepliedComments_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

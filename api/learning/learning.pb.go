@@ -2463,7 +2463,7 @@ var file_api_learning_learning_proto_rawDesc = []byte{
 	0x08, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x2d, 0x0a, 0x08, 0x63, 0x6f, 0x6d,
 	0x6d, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x6c, 0x65,
 	0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x08,
-	0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x32, 0xf7, 0x0c, 0x0a, 0x0f, 0x4c, 0x65, 0x61,
+	0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x32, 0xb8, 0x0d, 0x0a, 0x0f, 0x4c, 0x65, 0x61,
 	0x72, 0x6e, 0x69, 0x6e, 0x67, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x52, 0x0a, 0x10,
 	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x6c, 0x61, 0x73, 0x73, 0x52, 0x6f, 0x6f, 0x6d, 0x73,
 	0x12, 0x21, 0x2e, 0x6c, 0x65, 0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x2e, 0x43, 0x72, 0x65, 0x61,
@@ -2567,10 +2567,15 @@ var file_api_learning_learning_proto_rawDesc = []byte{
 	0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x13, 0x2e, 0x6c, 0x65, 0x61, 0x72, 0x6e, 0x69,
 	0x6e, 0x67, 0x2e, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e, 0x6c,
 	0x65, 0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x73,
-	0x22, 0x00, 0x42, 0x34, 0x5a, 0x32, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x6c, 0x65, 0x73, 0x2d, 0x63, 0x6f, 0x75, 0x72, 0x73, 0x2f, 0x6c, 0x65, 0x61, 0x72, 0x6e,
-	0x69, 0x6e, 0x67, 0x2d, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x6c, 0x65, 0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0x00, 0x12, 0x3f, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x65, 0x64,
+	0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x13, 0x2e, 0x6c, 0x65, 0x61, 0x72, 0x6e,
+	0x69, 0x6e, 0x67, 0x2e, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e,
+	0x6c, 0x65, 0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74,
+	0x73, 0x22, 0x00, 0x42, 0x34, 0x5a, 0x32, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x6c, 0x65, 0x73, 0x2d, 0x63, 0x6f, 0x75, 0x72, 0x73, 0x2f, 0x6c, 0x65, 0x61, 0x72,
+	0x6e, 0x69, 0x6e, 0x67, 0x2d, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x6c, 0x65, 0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -2654,32 +2659,34 @@ var file_api_learning_learning_proto_depIdxs = []int32{
 	22, // 32: learning.LearningService.CreatePdf:input_type -> learning.CreatePdfRequest
 	28, // 33: learning.LearningService.CreateComment:input_type -> learning.CreateCommentRequest
 	1,  // 34: learning.LearningService.GetComments:input_type -> learning.IDRequest
-	0,  // 35: learning.LearningService.CreateClassRooms:output_type -> learning.OperationStatus
-	6,  // 36: learning.LearningService.CreateClassRoom:output_type -> learning.ClassRoom
-	6,  // 37: learning.LearningService.UpdateClassRoom:output_type -> learning.ClassRoom
-	9,  // 38: learning.LearningService.GetClassRooms:output_type -> learning.ClassRooms
-	9,  // 39: learning.LearningService.GetClassRoomsByTeacher:output_type -> learning.ClassRooms
-	9,  // 40: learning.LearningService.GetMyClassRooms:output_type -> learning.ClassRooms
-	6,  // 41: learning.LearningService.GetClassRoom:output_type -> learning.ClassRoom
-	0,  // 42: learning.LearningService.DeleteClassRoom:output_type -> learning.OperationStatus
-	0,  // 43: learning.LearningService.DeleteClassRoomsByTeacher:output_type -> learning.OperationStatus
-	17, // 44: learning.LearningService.CreateChapter:output_type -> learning.Chapter
-	16, // 45: learning.LearningService.GetChaptersByClassRoom:output_type -> learning.Chapters
-	17, // 46: learning.LearningService.UpdateChapter:output_type -> learning.Chapter
-	0,  // 47: learning.LearningService.DeleteChapter:output_type -> learning.OperationStatus
-	12, // 48: learning.LearningService.GetLessonsByChapter:output_type -> learning.Lessons
-	11, // 49: learning.LearningService.CreateLesson:output_type -> learning.Lesson
-	11, // 50: learning.LearningService.UpdateLesson:output_type -> learning.Lesson
-	0,  // 51: learning.LearningService.DeleteLesson:output_type -> learning.OperationStatus
-	26, // 52: learning.LearningService.GetDocuments:output_type -> learning.Documents
-	24, // 53: learning.LearningService.GetDocument:output_type -> learning.DocumentLink
-	0,  // 54: learning.LearningService.DeleteDocument:output_type -> learning.OperationStatus
-	23, // 55: learning.LearningService.CreateVideo:output_type -> learning.Document
-	23, // 56: learning.LearningService.CreatePdf:output_type -> learning.Document
-	0,  // 57: learning.LearningService.CreateComment:output_type -> learning.OperationStatus
-	29, // 58: learning.LearningService.GetComments:output_type -> learning.Comments
-	35, // [35:59] is the sub-list for method output_type
-	11, // [11:35] is the sub-list for method input_type
+	1,  // 35: learning.LearningService.GetRepliedComments:input_type -> learning.IDRequest
+	0,  // 36: learning.LearningService.CreateClassRooms:output_type -> learning.OperationStatus
+	6,  // 37: learning.LearningService.CreateClassRoom:output_type -> learning.ClassRoom
+	6,  // 38: learning.LearningService.UpdateClassRoom:output_type -> learning.ClassRoom
+	9,  // 39: learning.LearningService.GetClassRooms:output_type -> learning.ClassRooms
+	9,  // 40: learning.LearningService.GetClassRoomsByTeacher:output_type -> learning.ClassRooms
+	9,  // 41: learning.LearningService.GetMyClassRooms:output_type -> learning.ClassRooms
+	6,  // 42: learning.LearningService.GetClassRoom:output_type -> learning.ClassRoom
+	0,  // 43: learning.LearningService.DeleteClassRoom:output_type -> learning.OperationStatus
+	0,  // 44: learning.LearningService.DeleteClassRoomsByTeacher:output_type -> learning.OperationStatus
+	17, // 45: learning.LearningService.CreateChapter:output_type -> learning.Chapter
+	16, // 46: learning.LearningService.GetChaptersByClassRoom:output_type -> learning.Chapters
+	17, // 47: learning.LearningService.UpdateChapter:output_type -> learning.Chapter
+	0,  // 48: learning.LearningService.DeleteChapter:output_type -> learning.OperationStatus
+	12, // 49: learning.LearningService.GetLessonsByChapter:output_type -> learning.Lessons
+	11, // 50: learning.LearningService.CreateLesson:output_type -> learning.Lesson
+	11, // 51: learning.LearningService.UpdateLesson:output_type -> learning.Lesson
+	0,  // 52: learning.LearningService.DeleteLesson:output_type -> learning.OperationStatus
+	26, // 53: learning.LearningService.GetDocuments:output_type -> learning.Documents
+	24, // 54: learning.LearningService.GetDocument:output_type -> learning.DocumentLink
+	0,  // 55: learning.LearningService.DeleteDocument:output_type -> learning.OperationStatus
+	23, // 56: learning.LearningService.CreateVideo:output_type -> learning.Document
+	23, // 57: learning.LearningService.CreatePdf:output_type -> learning.Document
+	0,  // 58: learning.LearningService.CreateComment:output_type -> learning.OperationStatus
+	29, // 59: learning.LearningService.GetComments:output_type -> learning.Comments
+	29, // 60: learning.LearningService.GetRepliedComments:output_type -> learning.Comments
+	36, // [36:61] is the sub-list for method output_type
+	11, // [11:36] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
 	11, // [11:11] is the sub-list for extension extendee
 	0,  // [0:11] is the sub-list for field type_name
