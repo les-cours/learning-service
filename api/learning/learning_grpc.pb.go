@@ -46,6 +46,8 @@ type LearningServiceClient interface {
 	DeleteDocument(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	CreateVideo(ctx context.Context, in *CreateVideoRequest, opts ...grpc.CallOption) (*Document, error)
 	CreatePdf(ctx context.Context, in *CreatePdfRequest, opts ...grpc.CallOption) (*Document, error)
+	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*OperationStatus, error)
+	GetComments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Comments, error)
 }
 
 type learningServiceClient struct {
@@ -254,6 +256,24 @@ func (c *learningServiceClient) CreatePdf(ctx context.Context, in *CreatePdfRequ
 	return out, nil
 }
 
+func (c *learningServiceClient) CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*OperationStatus, error) {
+	out := new(OperationStatus)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/CreateComment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) GetComments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Comments, error) {
+	out := new(Comments)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetComments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearningServiceServer is the server API for LearningService service.
 // All implementations must embed UnimplementedLearningServiceServer
 // for forward compatibility
@@ -282,6 +302,8 @@ type LearningServiceServer interface {
 	DeleteDocument(context.Context, *IDRequest) (*OperationStatus, error)
 	CreateVideo(context.Context, *CreateVideoRequest) (*Document, error)
 	CreatePdf(context.Context, *CreatePdfRequest) (*Document, error)
+	CreateComment(context.Context, *CreateCommentRequest) (*OperationStatus, error)
+	GetComments(context.Context, *IDRequest) (*Comments, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
 
@@ -354,6 +376,12 @@ func (UnimplementedLearningServiceServer) CreateVideo(context.Context, *CreateVi
 }
 func (UnimplementedLearningServiceServer) CreatePdf(context.Context, *CreatePdfRequest) (*Document, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePdf not implemented")
+}
+func (UnimplementedLearningServiceServer) CreateComment(context.Context, *CreateCommentRequest) (*OperationStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
+}
+func (UnimplementedLearningServiceServer) GetComments(context.Context, *IDRequest) (*Comments, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetComments not implemented")
 }
 func (UnimplementedLearningServiceServer) mustEmbedUnimplementedLearningServiceServer() {}
 
@@ -764,6 +792,42 @@ func _LearningService_CreatePdf_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearningService_CreateComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCommentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).CreateComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/CreateComment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).CreateComment(ctx, req.(*CreateCommentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_GetComments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetComments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetComments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetComments(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearningService_ServiceDesc is the grpc.ServiceDesc for LearningService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -858,6 +922,14 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePdf",
 			Handler:    _LearningService_CreatePdf_Handler,
+		},
+		{
+			MethodName: "CreateComment",
+			Handler:    _LearningService_CreateComment_Handler,
+		},
+		{
+			MethodName: "GetComments",
+			Handler:    _LearningService_GetComments_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

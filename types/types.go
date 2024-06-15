@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 //
 //// RepliedMessage Describe the replied message
 //type RepliedMessage struct {
@@ -35,13 +37,14 @@ package types
 //}
 
 type Comment struct {
-	ID         string `bson:"id"                        json:"id"`
-	DocumentID string `bson:"documentID"                json:"documentID"`
-	Message    string `bson:"message"                   json:"message"`
-	Timestamp  int64  `bson:"timestamp"                 json:"timestamp"`
-	Owner      string `bson:"owner"                     json:"owner"`
-	IsEdited   bool   `bson:"isEdited,omitempty"        json:"isEdited,omitempty"`
-	IsDeleted  bool   `bson:"isDeleted,omitempty"       json:"isDeleted,omitempty"`
+	ID         string    `json:"id"`
+	UserID     string    `json:"user_id"`
+	RepliedTo  string    `json:"replied_to"`
+	Content    string    `json:"content"`
+	DocumentID string    `json:"document_id"`
+	Timestamp  time.Time `json:"timestamp"`
+	Edited     bool      `json:"edited"`
+	IsTeacher  bool      `json:"is_teacher"`
 }
 
 //type MongoMessage struct {

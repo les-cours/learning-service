@@ -2,7 +2,6 @@ syntax = "proto3";
 option go_package = "github.com/les-cours/learning-service/api/learning";
 package learning;
 
-
 message  OperationStatus{
   bool success = 1;
 }
@@ -82,7 +81,9 @@ message Lesson {
   string description = 4;
   string arabicDescription = 5;
   Documents documents = 6;
+  int32 lessonOrder = 7;
 }
+
 
 message Lessons{
   repeated Lesson lessons = 1;
@@ -196,6 +197,29 @@ message Documents{
   repeated Document documents = 1;
 }
 
+message Comment {
+  string id = 1;                 // Unique identifier for the comment
+  string userID = 2;            // ID of the user who made the comment
+  string repliedTo = 7;
+  string content = 3;           // The actual comment text
+  string documentID = 4;            // ID of the post to which the comment belongs
+  int64 timestamp = 5;          // Timestamp of when the comment was made
+  bool edited = 6;              // Whether the comment has been edited
+  bool isTeacher = 8;
+}
+
+message CreateCommentRequest {
+  string userID = 1;            // ID of the user creating the comment
+  string content = 2;           // The actual comment text
+  string documentID = 3;            // ID of the post to which the comment is being added
+  string repliedTo = 4;
+  bool isTeacher = 5;
+}
+
+message Comments {
+  repeated Comment comments = 1;
+}
+
 service LearningService {
   rpc CreateClassRooms(CreateClassRoomsRequest)returns (OperationStatus){}
   rpc CreateClassRoom(CreateClassRoomRequest)returns (ClassRoom){}
@@ -232,6 +256,10 @@ service LearningService {
   rpc DeleteDocument(IDRequest)returns (OperationStatus){}
 
   rpc CreateVideo(CreateVideoRequest)returns (Document){}
+
   rpc CreatePdf(CreatePdfRequest)returns (Document){}
+  rpc CreateComment(CreateCommentRequest)returns (OperationStatus){}
+  rpc GetComments(IDRequest)returns (Comments){}
+
 
 }

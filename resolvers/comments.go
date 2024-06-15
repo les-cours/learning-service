@@ -2,40 +2,58 @@ package resolvers
 
 import (
 	"context"
+	"github.com/google/uuid"
+	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/types"
+	"time"
 )
 
-/*
-add WS
-*/
-func (s *Server) CreateComment(ctx context.Context) error {
+func (s *Server) CreateComment(ctx context.Context, in *learning.CreateCommentRequest) (*learning.OperationStatus, error) {
 
-	err := s.MongoDB.AddComment(ctx, types.Comment{
-		ID:         "1",
-		DocumentID: "1",
-		Message:    "test comment",
-		Timestamp:  0,
-		Owner:      "",
-		IsEdited:   false,
-		IsDeleted:  false,
-	})
+	commentID := uuid.NewString()
 
-	return err
+	comment := types.Comment{
+		ID:         commentID,
+		UserID:     in.UserID,
+		Content:    in.Content,
+		DocumentID: in.DocumentID,
+		Timestamp:  time.Now(),
+		IsTeacher:  in.IsTeacher,
+	}
+
+	if in.RepliedTo != "" {
+		comment.RepliedTo = in.RepliedTo
+	}
+
+	err := s.MongoDB.AddComment(ctx, &comment)
+
+	return &learning.OperationStatus{
+		Success: true,
+	}, err
 }
 
-func (s *Server) GetComments(ctx context.Context, documentID string) ([]*types.Comment, error) {
+func (s *Server) GetComments(ctx context.Context, in *learning.IDRequest) (*learning.Comments, error) {
 
-	//s.MongoDB.GetComments(ctx, documentID)
-	//err := s.MongoDB.AddComment(ctx, types.Comment{
-	//	ID:         "1",
-	//	DocumentID: "1",
-	//	Message:    "test comment",
-	//	Timestamp:  0,
-	//	Owner:      "",
-	//	IsEdited:   false,
-	//	IsDeleted:  false,
-	//})
-	//
-	//return err
-	return nil, nil
+	comments, err := s.MongoDB.GetComments(ctx, in.Id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var apiComments = new(learning.Comments)
+
+	for _, comment := range comments {
+		apiComments.Comments = append(apiComments.Comments, &learning.Comment{
+			Id:         comment.ID,
+			UserID:     comment.UserID,
+			RepliedTo:  comment.RepliedTo,
+			Content:    comment.Content,
+			DocumentID: comment.DocumentID,
+			Timestamp:  comment.Timestamp.Unix(),
+			Edited:     comment.Edited,
+			IsTeacher:  comment.IsTeacher,
+		})
+	}
+
+	return apiComments, nil
 }
