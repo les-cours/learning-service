@@ -7,6 +7,7 @@ import (
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/utils"
 	"log"
+	"time"
 )
 
 func (s *Server) CreateLesson(ctx context.Context, in *learning.CreateLessonRequest) (*learning.Lesson, error) {
@@ -172,17 +173,18 @@ func userHasLesson(db *sql.DB, userID, lessonID string) error {
 func canAccessToLesson(db *sql.DB, studentID, lessonID string) (bool, error) {
 
 	var has bool
+	var currentMonth = int(time.Now().Month())
 	err := db.QueryRow(`SELECT EXISTS (
     SELECT 1
     FROM subscription
-    INNER JOIN lessons ON subscription.month_id = lessons.month_id
+    INNER JOIN lessons ON subscription.month_id = $3
     INNER JOIN chapters ON chapters.chapter_id = lessons.chapter_id
-    
     WHERE subscription.classroom_id = chapters.classroom_id
     AND subscription.student_id = $1
     AND lessons.lesson_id = $2
+    AND month_id = $3
 );
-`, studentID, lessonID).Scan(&has)
+`, studentID, lessonID, currentMonth).Scan(&has)
 
 	if err != nil {
 		log.Println("lessons.go:213 | ", err.Error())
