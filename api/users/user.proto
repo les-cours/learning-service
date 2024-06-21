@@ -106,21 +106,24 @@ message EmailConfirmationRequest {
 
 message GetUserByIDRequest {
     string accountID = 1;
+    string userRole = 2;
 }
+
 message User {
-        string id = 1;
-        string accountID= 2;
-        string username = 3;
-        string firstName = 4;
-        string lastName = 5;
-        string email = 6;
-        Plan plan = 8;
-        repeated string allowedIPS = 9;
-        string department = 10;
-        string avatar = 11;
-        Permissions Permissions = 12;
-        string userType = 13;
+    string id = 1;
+    string accountID= 2;
+    string username = 3;
+    string firstName = 4;
+    string lastName = 5;
+    string email = 6;
+    string avatar = 11;
+    string userType = 13;
+    Permissions CREATE = 14;
+    Permissions READ = 15;
+    Permissions UPDATE = 16;
+    Permissions DELETE = 17;
 }
+
 message GetUserRequest {
     string username = 1;
     string password = 2;

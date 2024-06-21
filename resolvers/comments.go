@@ -44,10 +44,17 @@ func (s *Server) GetComments(ctx context.Context, in *learning.IDRequest) (*lear
 	var apiComments = new(learning.Comments)
 
 	for _, comment := range comments {
+		s.Logger.Info(comment.UserID)
+		var role = "student"
+		if comment.IsTeacher {
+			role = "teacher"
+		}
 		user, err := s.Users.GetUserByID(ctx, &users.GetUserByIDRequest{
 			AccountID: comment.UserID,
+			UserRole:  role,
 		})
 		if err != nil {
+			s.Logger.Error(err.Error())
 			user = &users.User{
 				Id:        "",
 				Username:  "deleted account",
