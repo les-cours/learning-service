@@ -1,6 +1,10 @@
 package types
 
-import "time"
+import (
+	"net"
+	"sync"
+	"time"
+)
 
 //
 //// RepliedMessage Describe the replied message
@@ -45,6 +49,32 @@ type Comment struct {
 	Timestamp  time.Time `json:"timestamp"`
 	Edited     bool      `json:"edited"`
 	IsTeacher  bool      `json:"is_teacher"`
+}
+
+type Message struct {
+}
+
+type Room struct {
+	ID       string     `json:"roomID"`
+	Name     string     `json:"name"`
+	Teacher  RoomUser   `json:"ownerID"`
+	Users    []RoomUser `json:"users"`
+	Messages []Message  `json:"messages"`
+}
+
+type RoomUser struct {
+	User        *User
+	Private     bool
+	IsActive    bool
+	IsIncognito bool
+}
+
+type User struct {
+	Authenticated bool
+	IO            sync.RWMutex
+	Conn          net.Conn
+	Init          bool
+	Rooms         []*Room
 }
 
 //type MongoMessage struct {

@@ -46,6 +46,13 @@ func (db *MongoClient) GetComments(ctx context.Context, id string, replied bool)
 	return comments, nil
 }
 
+func (db *MongoClient) CreateRoom(ctx context.Context, classroomID string) error {
+
+	_, err := db.MongoDB.Database(MongoDBName).Collection(RoomsCollections).InsertOne(ctx, types.Room{})
+
+	return err
+}
+
 //
 //// DeleteMessage Delete specific message from room of an account, it returns a mongo db error
 //// if any error occurs or ErrNoOwnerMatch the owner is not the same or ErrMessageDeleted

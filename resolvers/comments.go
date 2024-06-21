@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/les-cours/learning-service/api/learning"
+	"github.com/les-cours/learning-service/api/users"
 	"github.com/les-cours/learning-service/types"
 	"time"
 )
@@ -43,9 +44,27 @@ func (s *Server) GetComments(ctx context.Context, in *learning.IDRequest) (*lear
 	var apiComments = new(learning.Comments)
 
 	for _, comment := range comments {
+		user, err := s.Users.GetUserByID(ctx, &users.GetUserByIDRequest{
+			AccountID: comment.UserID,
+		})
+		if err != nil {
+			user = &users.User{
+				Id:        "",
+				Username:  "deleted account",
+				FirstName: "deleted account",
+				LastName:  "deleted account",
+				Avatar:    "",
+			}
+		}
 		apiComments.Comments = append(apiComments.Comments, &learning.Comment{
-			Id:         comment.ID,
-			UserID:     comment.UserID,
+			Id: comment.ID,
+			User: &learning.User{
+				Id:        user.Id,
+				Username:  user.Username,
+				FirstName: user.FirstName,
+				LastName:  user.LastName,
+				Avatar:    user.Avatar,
+			},
 			RepliedTo:  comment.RepliedTo,
 			Content:    comment.Content,
 			DocumentID: comment.DocumentID,
@@ -69,9 +88,27 @@ func (s *Server) GetRepliedComments(ctx context.Context, in *learning.IDRequest)
 	var apiComments = new(learning.Comments)
 
 	for _, comment := range comments {
+		user, err := s.Users.GetUserByID(ctx, &users.GetUserByIDRequest{
+			AccountID: comment.UserID,
+		})
+		if err != nil {
+			user = &users.User{
+				Id:        "",
+				Username:  "deleted account",
+				FirstName: "deleted account",
+				LastName:  "deleted account",
+				Avatar:    "",
+			}
+		}
 		apiComments.Comments = append(apiComments.Comments, &learning.Comment{
-			Id:         comment.ID,
-			UserID:     comment.UserID,
+			Id: comment.ID,
+			User: &learning.User{
+				Id:        user.Id,
+				Username:  user.Username,
+				FirstName: user.FirstName,
+				LastName:  user.LastName,
+				Avatar:    user.Avatar,
+			},
 			RepliedTo:  comment.RepliedTo,
 			Content:    comment.Content,
 			DocumentID: comment.DocumentID,

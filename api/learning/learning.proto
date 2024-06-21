@@ -199,13 +199,22 @@ message Documents{
 
 message Comment {
   string id = 1;                 // Unique identifier for the comment
-  string userID = 2;            // ID of the user who made the comment
+  User user = 2; // ID of the user who made the comment
   string repliedTo = 7;
   string content = 3;           // The actual comment text
   string documentID = 4;            // ID of the post to which the comment belongs
   int64 timestamp = 5;          // Timestamp of when the comment was made
   bool edited = 6;              // Whether the comment has been edited
   bool isTeacher = 8;
+
+}
+
+message User {
+  string id = 1;
+  string username = 3;
+  string firstName = 4;
+  string lastName = 5;
+  string avatar = 6;
 }
 
 message CreateCommentRequest {
