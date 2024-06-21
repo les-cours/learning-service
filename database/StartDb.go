@@ -61,12 +61,12 @@ func StartMongoDB() (*mongo.Client, error) {
 		log.Fatal(err)
 	}
 
-	//// Check the connection
-	//err = client.Ping(context.TODO(), nil)
-	//if err != nil {
-	//	log.Printf("Error while connecting to db 2 ")
-	//	log.Fatal(err)
-	//}
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Printf("Error while connecting to db 2 err: %v", err.Error())
+		//log.Fatal(err.Error())
+	}
 
 	fmt.Println("Connected to MongoDB!")
 
