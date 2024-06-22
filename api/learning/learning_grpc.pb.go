@@ -49,6 +49,10 @@ type LearningServiceClient interface {
 	CreateComment(ctx context.Context, in *CreateCommentRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	GetComments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Comments, error)
 	GetRepliedComments(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Comments, error)
+	// chat
+	GetChatRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Room, error)
+	AddMessageToChatRoom(ctx context.Context, in *AddMessage, opts ...grpc.CallOption) (*OperationStatus, error)
+	AddStudentToChatRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 }
 
 type learningServiceClient struct {
@@ -284,6 +288,33 @@ func (c *learningServiceClient) GetRepliedComments(ctx context.Context, in *IDRe
 	return out, nil
 }
 
+func (c *learningServiceClient) GetChatRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Room, error) {
+	out := new(Room)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/GetChatRoom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) AddMessageToChatRoom(ctx context.Context, in *AddMessage, opts ...grpc.CallOption) (*OperationStatus, error) {
+	out := new(OperationStatus)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/AddMessageToChatRoom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) AddStudentToChatRoom(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*OperationStatus, error) {
+	out := new(OperationStatus)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/AddStudentToChatRoom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearningServiceServer is the server API for LearningService service.
 // All implementations must embed UnimplementedLearningServiceServer
 // for forward compatibility
@@ -315,6 +346,10 @@ type LearningServiceServer interface {
 	CreateComment(context.Context, *CreateCommentRequest) (*OperationStatus, error)
 	GetComments(context.Context, *IDRequest) (*Comments, error)
 	GetRepliedComments(context.Context, *IDRequest) (*Comments, error)
+	// chat
+	GetChatRoom(context.Context, *IDRequest) (*Room, error)
+	AddMessageToChatRoom(context.Context, *AddMessage) (*OperationStatus, error)
+	AddStudentToChatRoom(context.Context, *IDRequest) (*OperationStatus, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
 
@@ -396,6 +431,15 @@ func (UnimplementedLearningServiceServer) GetComments(context.Context, *IDReques
 }
 func (UnimplementedLearningServiceServer) GetRepliedComments(context.Context, *IDRequest) (*Comments, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRepliedComments not implemented")
+}
+func (UnimplementedLearningServiceServer) GetChatRoom(context.Context, *IDRequest) (*Room, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChatRoom not implemented")
+}
+func (UnimplementedLearningServiceServer) AddMessageToChatRoom(context.Context, *AddMessage) (*OperationStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddMessageToChatRoom not implemented")
+}
+func (UnimplementedLearningServiceServer) AddStudentToChatRoom(context.Context, *IDRequest) (*OperationStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddStudentToChatRoom not implemented")
 }
 func (UnimplementedLearningServiceServer) mustEmbedUnimplementedLearningServiceServer() {}
 
@@ -860,6 +904,60 @@ func _LearningService_GetRepliedComments_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearningService_GetChatRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).GetChatRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/GetChatRoom",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).GetChatRoom(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_AddMessageToChatRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).AddMessageToChatRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/AddMessageToChatRoom",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).AddMessageToChatRoom(ctx, req.(*AddMessage))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_AddStudentToChatRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).AddStudentToChatRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/AddStudentToChatRoom",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).AddStudentToChatRoom(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearningService_ServiceDesc is the grpc.ServiceDesc for LearningService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -966,6 +1064,18 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRepliedComments",
 			Handler:    _LearningService_GetRepliedComments_Handler,
+		},
+		{
+			MethodName: "GetChatRoom",
+			Handler:    _LearningService_GetChatRoom_Handler,
+		},
+		{
+			MethodName: "AddMessageToChatRoom",
+			Handler:    _LearningService_AddMessageToChatRoom_Handler,
+		},
+		{
+			MethodName: "AddStudentToChatRoom",
+			Handler:    _LearningService_AddStudentToChatRoom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -5,7 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/les-cours/learning-service/api/learning"
+	"github.com/les-cours/learning-service/api/users"
 	"github.com/les-cours/learning-service/utils"
+	"log"
+	"time"
 )
 
 func (s *Server) CreateClassRooms(ctx context.Context, in *learning.CreateClassRoomsRequest) (*learning.OperationStatus, error) {
@@ -30,11 +33,11 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 	*/
 
 	var subjectName string
-	var arabicSubjectName string
+	var classRoomArabicName string
 
 	err := s.DB.QueryRow(`SELECT title ,title_ar FROM subjects 
                          WHERE subject_id = $1 
-`, in.SubjectID).Scan(&subjectName, &arabicSubjectName)
+`, in.SubjectID).Scan(&subjectName, &classRoomArabicName)
 
 	if err != nil {
 		s.Logger.Error(err.Error())
@@ -42,7 +45,6 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 	}
 
 	var classRoomName = subjectName
-	var classRoomArabicName = arabicSubjectName
 
 	/*
 		INSERT INTO CLASSROOM THE NEW ONE ...
@@ -50,19 +52,57 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 	_, err = s.DB.Exec(`INSERT INTO 
     classrooms 
     (classroom_id, teacher_id, subject_id, arabic_title,title,price,image,badge) 
-     VALUES ($1,$2,$3,$4,$5,$6,'https://firebasestorage.googleapis.com/v0/b/uploadingfile-90303.appspot.com/o/images%2F20240603_162237.png?alt=media&token=bc88a8a0-9a22-4c4c-aa68-0b07272db797','')`, classRoomID, in.TeacherID, in.SubjectID, classRoomArabicName, classRoomName, 1500)
+     VALUES ($1,$2,$3,$4,$5,$6,'https://firebasestorage.googleapis.com/v0/b/uploadingfile-90303.appspot.com/o/images%2F20240603_162237.png?alt=media&token=bc88a8a0-9a22-4c4c-aa68-0b07272db797','')`, classRoomID, in.TeacherID, in.SubjectID, classRoomArabicName, classRoomName, 799)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return nil, ErrInternal
 	}
 
-	return &learning.ClassRoom{
+	room := &learning.ClassRoom{
 		ClassRoomID:  classRoomID,
 		Title:        classRoomName,
-		Price:        1500,
+		Price:        799,
 		StudentCount: 0,
 		Rating:       0,
-	}, nil
+		ArabicTitle:  classRoomArabicName,
+	}
+	err = s.createChatRoom(ctx, room, in.TeacherID)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		//return nil, err
+	}
+	return room, nil
+}
+
+func (s *Server) createChatRoom(ctx context.Context, room *learning.ClassRoom, accountID string) error {
+
+	user, err := s.Users.GetUserByID(ctx, &users.GetUserByIDRequest{
+		AccountID: accountID,
+		UserRole:  "teacher",
+	})
+	var teacher = &learning.User{
+		Id:        user.Id,
+		Username:  user.Username,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Avatar:    user.Avatar,
+	}
+	if err != nil {
+		s.Logger.Error(err.Error())
+		teacher = &learning.User{
+			Id:        "deleted_account",
+			Username:  "deleted_account",
+			FirstName: "deleted_account",
+			LastName:  "deleted_account",
+			Avatar:    "deleted_account",
+		}
+	}
+	err = s.MongoDB.CreateRoom(ctx, room, teacher)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return err
+	}
+	return nil
 }
 
 func (s *Server) GetClassRooms(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
@@ -412,6 +452,32 @@ WHERE s.student_id = $1 AND deleted_at IS NULL AND classrooms.subject_id = $2 ;
 	}
 
 	return classRooms, nil
+}
+
+func (s *Server) CanAccessToClassRoom(studentID, classroomID string) bool {
+
+	var currentMonth = int(time.Now().Month())
+
+	var paidAt time.Time
+
+	err := s.DB.QueryRow(`
+SELECT paid_at
+FROM subscription
+WHERE month_id = $1
+  AND student_id = $2
+  AND classroom_id = $3 order by paid_at DESC LIMIT 1`, currentMonth, studentID, classroomID).Scan(&paidAt)
+
+	if err != nil {
+		log.Println("Err classroom.go:471 : ", err)
+		return false
+	}
+
+	if paidAt.AddDate(0, 1, 1).Sub(time.Now()) < 0 {
+		return false
+	}
+
+	return true
+
 }
 
 func userHasClassRoom(db *sql.DB, userID, classRoomID string) error {

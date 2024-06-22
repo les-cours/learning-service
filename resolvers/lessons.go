@@ -6,8 +6,6 @@ import (
 	"errors"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/utils"
-	"log"
-	"time"
 )
 
 func (s *Server) CreateLesson(ctx context.Context, in *learning.CreateLessonRequest) (*learning.Lesson, error) {
@@ -170,26 +168,17 @@ func userHasLesson(db *sql.DB, userID, lessonID string) error {
 
 	return ErrPermission
 }
-func canAccessToLesson(db *sql.DB, studentID, lessonID string) (bool, error) {
+func (s *Server) CanAccessToLesson(studentID, lessonID string) bool {
 
-	var has bool
-	var currentMonth = int(time.Now().Month())
-	err := db.QueryRow(`SELECT EXISTS (
-    SELECT 1
-    FROM subscription
-    INNER JOIN lessons ON subscription.month_id = $3
-    INNER JOIN chapters ON chapters.chapter_id = lessons.chapter_id
-    WHERE subscription.classroom_id = chapters.classroom_id
-    AND subscription.student_id = $1
-    AND lessons.lesson_id = $2
-    AND month_id = $3
-);
-`, studentID, lessonID, currentMonth).Scan(&has)
-
+	var classroomID string
+	err := s.DB.QueryRow(`SELECT classrooms.classroom_id FROM lessons 
+                  INNER JOIN chapters  on lessons.chapter_id = chapters.chapter_id
+                  INNER JOIN classrooms  on chapters.classroom_id = classrooms.classroom_id
+                  where lesson_id = $1;`, lessonID).Scan(&classroomID)
 	if err != nil {
-		log.Println("lessons.go:213 | ", err.Error())
-		return false, ErrInternal
+		s.Logger.Error(err.Error())
+		return false
 	}
-	return has, nil
+	return s.CanAccessToClassRoom(studentID, classroomID)
 
 }

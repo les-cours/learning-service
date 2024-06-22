@@ -229,6 +229,33 @@ message Comments {
   repeated Comment comments = 1;
 }
 
+
+message Room {
+  string id = 1;
+  string name = 2;
+  User owner = 3;
+  repeated User users = 4;
+  repeated Message messages = 5;
+}
+
+// Message
+message Message {
+  string id = 1;
+  string room_id = 2;
+  string content = 3;
+  string timestamp = 4; //
+  bool  isTeacher = 5;
+  User user = 6;
+}
+
+message AddMessage {
+  string roomID = 2;
+  string content = 3;
+  string userID = 5;
+  bool isTeacher = 6;
+}
+
+
 service LearningService {
   rpc CreateClassRooms(CreateClassRoomsRequest)returns (OperationStatus){}
   rpc CreateClassRoom(CreateClassRoomRequest)returns (ClassRoom){}
@@ -271,4 +298,11 @@ service LearningService {
   rpc GetComments(IDRequest)returns (Comments){}
   rpc GetRepliedComments(IDRequest)returns (Comments){}
 
+
+  /*
+  chat
+   */
+  rpc GetChatRoom(IDRequest)returns(Room){}
+  rpc AddMessageToChatRoom(AddMessage)returns(OperationStatus){}
+  rpc AddStudentToChatRoom(IDRequest)returns(OperationStatus){}
 }

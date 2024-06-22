@@ -79,10 +79,8 @@ WHERE document_id = $1;`, in.Id).Scan(&lessonID, &documentLink)
 		return nil, ErrNotFound("document")
 	}
 	//check if student has acces to this resource.
-	var canCreate bool
-	canCreate, err = canAccessToLesson(s.DB, in.UserID, lessonID)
 
-	if err != nil && canCreate {
+	if s.CanAccessToLesson(in.UserID, lessonID) {
 		return nil, ErrPermission
 	}
 
