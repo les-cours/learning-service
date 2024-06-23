@@ -32,6 +32,7 @@ func ErrExistInput(field string) error {
 }
 
 var (
-	ErrInternal   = errors.New("internal error, please try again later")
-	ErrPermission = errors.New("permission denied")
+	ErrInternal         = errors.New("internal error, please try again later")
+	ErrPermission       = errors.New("permission denied")
+	ErrClassroomNotPaid = errors.New("classroom not paid")
 )

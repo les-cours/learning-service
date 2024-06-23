@@ -8,7 +8,6 @@ import (
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/api/users"
 	"github.com/les-cours/learning-service/utils"
-	"log"
 	"time"
 )
 
@@ -531,15 +530,16 @@ func (s *Server) CanAccessToClassRoom(studentID, classroomID string) bool {
 
 	var currentTime = time.Now()
 
+	var test string
 	err := s.DB.QueryRow(`
 SELECT 1
 FROM subscription
 WHERE paid_at  between $1 and $2
   AND student_id = $3
-  AND classroom_id = $4 LIMIT 1`, currentTime.AddDate(0, -1, 0), currentTime, studentID, classroomID).Err()
+  AND classroom_id = $4 LIMIT 1`, currentTime.AddDate(0, -1, 0), currentTime, studentID, classroomID).Scan(&test)
 
 	if err != nil {
-		log.Println("Err classroom.go:471 : ", err)
+		s.Logger.Error(err.Error())
 		return false
 	}
 

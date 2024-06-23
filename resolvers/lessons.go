@@ -179,6 +179,7 @@ func (s *Server) CanAccessToLesson(studentID, lessonID string) bool {
 		s.Logger.Error(err.Error())
 		return false
 	}
+	s.Logger.Info(classroomID)
 	return s.CanAccessToClassRoom(studentID, classroomID)
 
 }

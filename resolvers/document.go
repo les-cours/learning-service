@@ -68,6 +68,7 @@ ORDER BY lecture_number;`, in.Id)
 func (s *Server) GetDocument(ctx context.Context, in *learning.IDRequest) (*learning.DocumentLink, error) {
 
 	var lessonID string
+
 	var documentLink *sql.NullString
 	var err error
 	err = s.DB.QueryRow(`SELECT lesson_id,document_link
@@ -78,10 +79,8 @@ WHERE document_id = $1;`, in.Id).Scan(&lessonID, &documentLink)
 		s.Logger.Error(err.Error())
 		return nil, ErrNotFound("document")
 	}
-	//check if student has acces to this resource.
-
-	if s.CanAccessToLesson(in.UserID, lessonID) {
-		return nil, ErrPermission
+	if !s.CanAccessToLesson(in.UserID, lessonID) {
+		return nil, ErrClassroomNotPaid
 	}
 
 	if !documentLink.Valid {

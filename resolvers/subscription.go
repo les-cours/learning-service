@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/les-cours/learning-service/api/learning"
-	"log"
 	"time"
 )
 
@@ -35,7 +34,6 @@ SELECT subscription_id,month_id,paid_at FROM subscription where classroom_id = $
 		return nil, ErrInternal
 	}
 
-	log.Println(paidAt)
 	return &learning.CurrentSubscription{
 		Status:   true,
 		RestDays: int32(paidAt.AddDate(0, 1, 0).Sub(currentTime).Hours() / 24),
