@@ -419,12 +419,16 @@ func (s *Server) GetMyClassRooms(ctx context.Context, in *learning.IDRequest) (*
 	var subjectID = in.Id
 	var studentID = in.UserID
 
+	currentTime := time.Now()
+
 	rows, err := s.DB.Query(`
 SELECT DISTINCT classrooms.classroom_id, title, COALESCE(image, 'default.jpg') AS image,price,COALESCE(badge, '') AS badge, description, arabic_title
 	FROM classrooms
 	INNER JOIN subscription s on classrooms.classroom_id = s.classroom_id
-WHERE s.student_id = $1 AND deleted_at IS NULL AND classrooms.subject_id = $2 ;
-        `, studentID, subjectID)
+WHERE s.student_id = $1 AND deleted_at IS NULL AND classrooms.subject_id = $2 
+AND s.paid_at between $3 AND $4;
+        `, studentID, subjectID, currentTime.
+		AddDate(0, -1, 0), currentTime)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return nil, err

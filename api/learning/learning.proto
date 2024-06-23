@@ -240,6 +240,16 @@ message Room {
   repeated Message messages = 5;
 }
 
+
+message RoomPromos {
+  repeated RoomPromo rooms = 1;
+}
+message RoomPromo {
+  string id = 1;
+  string name = 2;
+  User owner = 3;
+}
+
 // Message
 message Message {
   string id = 1;
