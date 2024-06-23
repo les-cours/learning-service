@@ -9,6 +9,8 @@ message IDRequest {
   string id = 1;
   string userID = 2;
 }
+
+
 message Pdf {
   string pdfID = 1;
   string title = 2;
@@ -256,6 +258,22 @@ message AddMessage {
 }
 
 
+message CurrentSubscription {
+  bool status = 1;
+  int32 rest_days = 2;
+  Subscription subscription = 3;
+}
+
+message Subscription {
+  string id  =1;
+  int32 month_id =2;
+  int64  paid_at = 3;
+}
+message  Subscriptions {
+  repeated Subscription subscriptions = 1;
+}
+
+
 service LearningService {
   rpc CreateClassRooms(CreateClassRoomsRequest)returns (OperationStatus){}
   rpc CreateClassRoom(CreateClassRoomRequest)returns (ClassRoom){}
@@ -305,4 +323,11 @@ service LearningService {
   rpc GetChatRoom(IDRequest)returns(Room){}
   rpc AddMessageToChatRoom(AddMessage)returns(OperationStatus){}
   rpc AddStudentToChatRoom(IDRequest)returns(OperationStatus){}
+
+
+  /*
+  GetSubscriptionInfo
+   */
+  rpc GetCurrentSubscription(IDRequest) returns(CurrentSubscription){}
+  rpc GetSubscriptions(IDRequest) returns(Subscriptions){}
 }

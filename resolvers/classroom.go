@@ -456,23 +456,17 @@ WHERE s.student_id = $1 AND deleted_at IS NULL AND classrooms.subject_id = $2 ;
 
 func (s *Server) CanAccessToClassRoom(studentID, classroomID string) bool {
 
-	var currentMonth = int(time.Now().Month())
-
-	var paidAt time.Time
+	var currentTime = time.Now()
 
 	err := s.DB.QueryRow(`
-SELECT paid_at
+SELECT 1
 FROM subscription
-WHERE month_id = $1
-  AND student_id = $2
-  AND classroom_id = $3 order by paid_at DESC LIMIT 1`, currentMonth, studentID, classroomID).Scan(&paidAt)
+WHERE paid_at  between $1 and $2
+  AND student_id = $3
+  AND classroom_id = $4 LIMIT 1`, currentTime.AddDate(0, -1, 0), currentTime, studentID, classroomID).Err()
 
 	if err != nil {
 		log.Println("Err classroom.go:471 : ", err)
-		return false
-	}
-
-	if paidAt.AddDate(0, 1, 1).Sub(time.Now()) < 0 {
 		return false
 	}
 
