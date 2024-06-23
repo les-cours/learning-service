@@ -96,39 +96,7 @@ func (s *Server) GetChatRoom(ctx context.Context, in *learning.IDRequest) (*lear
 
 	room, err := s.MongoDB.GetRoom(ctx, in.Id)
 	if err != nil {
-		return nil, err
-	}
-	return toGrpc.Room(room), nil
-
-}
-
-func (s *Server) GetStudentChatRoom(ctx context.Context, in *learning.IDRequest) (*learning.Room, error) {
-
-	//if s.CanAccessToClassRoom(in.UserID, in.Id) {
-	//	return nil, ErrPermission
-	//}
-
-	var subjectID = in.Id
-	var studentID = in.UserID
-
-	currentTime := time.Now()
-
-	rows, err := s.DB.Query(`
-SELECT classroom_id FROM subscription 
-WHERE student_id = $1 AND paid_at between $2 AND $3;`, studentID, currentTime.
-		AddDate(0, -1, 0), currentTime)
-
-	var ids []string
-	for rows.Next() {
-		var id string
-		err = rows.Scan(&id)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
-	}
-	room, err := s.MongoDB.GetRoom(ctx, in.Id)
-	if err != nil {
+		s.Logger.Error(err.Error())
 		return nil, err
 	}
 	return toGrpc.Room(room), nil

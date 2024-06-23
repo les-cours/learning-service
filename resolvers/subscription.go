@@ -56,11 +56,8 @@ func (s *Server) GetSubscriptions(ctx context.Context, in *learning.IDRequest) (
 	classRoomID := in.Id
 	studentID := in.UserID
 
-	currentTime := time.Now()
-
 	rows, err := s.DB.Query(`
-SELECT subscription_id,month_id,paid_at FROM subscription where classroom_id = $1 AND student_id = $2`, classRoomID, studentID, currentTime.
-		AddDate(0, -1, 0), currentTime)
+SELECT subscription_id,month_id,paid_at FROM subscription where classroom_id = $1 AND student_id = $2`, classRoomID, studentID)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return nil, ErrInternal
