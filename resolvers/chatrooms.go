@@ -96,7 +96,6 @@ func (s *Server) GetChatRoom(ctx context.Context, in *learning.IDRequest) (*lear
 
 	room, err := s.MongoDB.GetRoom(ctx, in.Id)
 	if err != nil {
-		s.Logger.Error(err.Error())
 		return nil, err
 	}
 	return toGrpc.Room(room), nil

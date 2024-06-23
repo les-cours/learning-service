@@ -4,12 +4,81 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/api/users"
 	"github.com/les-cours/learning-service/utils"
 	"log"
 	"time"
 )
+
+func (s *Server) InitClassRooms(ctx context.Context, in *learning.IDRequest) (*learning.Notifications, error) {
+
+	rows, err := s.DB.Query(`SELECT DISTINCT classroom_id FROM subscription WHERE student_id = $1`, in.Id)
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	var notifications = make([]*learning.Notification, 0)
+	for _, id := range ids {
+
+		res, err := s.GetCurrentSubscription(ctx, &learning.IDRequest{
+			Id:     id,
+			UserID: in.Id,
+		})
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+
+		var classroomTitle string
+		err = s.DB.QueryRow(`SELECT arabic_title from classrooms where  classroom_id = $1`, id).Scan(&classroomTitle)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			return nil, err
+		}
+
+		if !res.Status {
+			//add not subscription notification
+			var notification = new(learning.Notification)
+			notification.Id = utils.GenerateUUIDString()
+			notification.Title = "unpaid"
+			notification.Content = classroomTitle + " لم يتم دفعها، يرجى دفعها."
+
+			notifications = append(notifications, notification)
+
+			//remove it from chatrooms (change status)
+			err = s.MongoDB.ChangeStudentStatus(ctx, id, in.Id, false)
+			if err != nil {
+				s.Logger.Error(err.Error())
+			}
+
+			continue
+
+		}
+
+		if res.RestDays < 4 {
+			var notification = new(learning.Notification)
+			notification.Id = utils.GenerateUUIDString()
+			notification.Title = "Subscription Expiring Soon"
+			notification.Content = fmt.Sprintf("الاشتراك في %s سينتهي خلال %d أيام. يرجى تجديده.", classroomTitle, res.RestDays)
+
+			notifications = append(notifications, notification)
+		}
+
+	}
+
+	return &learning.Notifications{
+		Notifications: notifications,
+	}, nil
+}
 
 func (s *Server) CreateClassRooms(ctx context.Context, in *learning.CreateClassRoomsRequest) (*learning.OperationStatus, error) {
 	for _, subjectID := range in.SubjectIDs {
@@ -25,7 +94,7 @@ func (s *Server) CreateClassRooms(ctx context.Context, in *learning.CreateClassR
 	return &learning.OperationStatus{Success: true}, nil
 }
 
-func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRoomRequest) (*learning.ClassRoom, error) {
+func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRoomRequest) (*learning.OperationStatus, error) {
 
 	classRoomID := utils.GenerateUUIDString()
 	/*
@@ -71,7 +140,7 @@ func (s *Server) CreateClassRoom(ctx context.Context, in *learning.CreateClassRo
 		s.Logger.Error(err.Error())
 		//return nil, err
 	}
-	return room, nil
+	return &learning.OperationStatus{Success: true}, nil
 }
 
 func (s *Server) createChatRoom(ctx context.Context, room *learning.ClassRoom, accountID string) error {

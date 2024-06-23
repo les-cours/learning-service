@@ -55,5 +55,6 @@ func User(user *types.User) *learning.User {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Avatar:    user.Avatar,
+		Paid:      user.Paid,
 	}
 }

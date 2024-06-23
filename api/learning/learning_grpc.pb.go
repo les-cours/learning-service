@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LearningServiceClient interface {
 	CreateClassRooms(ctx context.Context, in *CreateClassRoomsRequest, opts ...grpc.CallOption) (*OperationStatus, error)
-	CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error)
+	CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*OperationStatus, error)
 	UpdateClassRoom(ctx context.Context, in *UpdateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error)
 	GetClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
 	GetClassRoomsByTeacher(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*ClassRooms, error)
@@ -56,6 +56,7 @@ type LearningServiceClient interface {
 	// GetSubscriptionInfo
 	GetCurrentSubscription(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*CurrentSubscription, error)
 	GetSubscriptions(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Subscriptions, error)
+	InitClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Notifications, error)
 }
 
 type learningServiceClient struct {
@@ -75,8 +76,8 @@ func (c *learningServiceClient) CreateClassRooms(ctx context.Context, in *Create
 	return out, nil
 }
 
-func (c *learningServiceClient) CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*ClassRoom, error) {
-	out := new(ClassRoom)
+func (c *learningServiceClient) CreateClassRoom(ctx context.Context, in *CreateClassRoomRequest, opts ...grpc.CallOption) (*OperationStatus, error) {
+	out := new(OperationStatus)
 	err := c.cc.Invoke(ctx, "/learning.LearningService/CreateClassRoom", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -336,12 +337,21 @@ func (c *learningServiceClient) GetSubscriptions(ctx context.Context, in *IDRequ
 	return out, nil
 }
 
+func (c *learningServiceClient) InitClassRooms(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*Notifications, error) {
+	out := new(Notifications)
+	err := c.cc.Invoke(ctx, "/learning.LearningService/InitClassRooms", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearningServiceServer is the server API for LearningService service.
 // All implementations must embed UnimplementedLearningServiceServer
 // for forward compatibility
 type LearningServiceServer interface {
 	CreateClassRooms(context.Context, *CreateClassRoomsRequest) (*OperationStatus, error)
-	CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error)
+	CreateClassRoom(context.Context, *CreateClassRoomRequest) (*OperationStatus, error)
 	UpdateClassRoom(context.Context, *UpdateClassRoomRequest) (*ClassRoom, error)
 	GetClassRooms(context.Context, *IDRequest) (*ClassRooms, error)
 	GetClassRoomsByTeacher(context.Context, *IDRequest) (*ClassRooms, error)
@@ -374,6 +384,7 @@ type LearningServiceServer interface {
 	// GetSubscriptionInfo
 	GetCurrentSubscription(context.Context, *IDRequest) (*CurrentSubscription, error)
 	GetSubscriptions(context.Context, *IDRequest) (*Subscriptions, error)
+	InitClassRooms(context.Context, *IDRequest) (*Notifications, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
 
@@ -384,7 +395,7 @@ type UnimplementedLearningServiceServer struct {
 func (UnimplementedLearningServiceServer) CreateClassRooms(context.Context, *CreateClassRoomsRequest) (*OperationStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateClassRooms not implemented")
 }
-func (UnimplementedLearningServiceServer) CreateClassRoom(context.Context, *CreateClassRoomRequest) (*ClassRoom, error) {
+func (UnimplementedLearningServiceServer) CreateClassRoom(context.Context, *CreateClassRoomRequest) (*OperationStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateClassRoom not implemented")
 }
 func (UnimplementedLearningServiceServer) UpdateClassRoom(context.Context, *UpdateClassRoomRequest) (*ClassRoom, error) {
@@ -470,6 +481,9 @@ func (UnimplementedLearningServiceServer) GetCurrentSubscription(context.Context
 }
 func (UnimplementedLearningServiceServer) GetSubscriptions(context.Context, *IDRequest) (*Subscriptions, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSubscriptions not implemented")
+}
+func (UnimplementedLearningServiceServer) InitClassRooms(context.Context, *IDRequest) (*Notifications, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InitClassRooms not implemented")
 }
 func (UnimplementedLearningServiceServer) mustEmbedUnimplementedLearningServiceServer() {}
 
@@ -1024,6 +1038,24 @@ func _LearningService_GetSubscriptions_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearningService_InitClassRooms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).InitClassRooms(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/learning.LearningService/InitClassRooms",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).InitClassRooms(ctx, req.(*IDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearningService_ServiceDesc is the grpc.ServiceDesc for LearningService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1150,6 +1182,10 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSubscriptions",
 			Handler:    _LearningService_GetSubscriptions_Handler,
+		},
+		{
+			MethodName: "InitClassRooms",
+			Handler:    _LearningService_InitClassRooms_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

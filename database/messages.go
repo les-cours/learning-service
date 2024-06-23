@@ -134,3 +134,20 @@ func (db *MongoClient) IsStudentBelongRoom(ctx context.Context, roomID string, s
 
 	return true
 }
+
+func (db *MongoClient) ChangeStudentStatus(ctx context.Context, roomID string, studentID string, paid bool) error {
+
+	// Update filter
+	filter := bson.M{"id": roomID, "users.id": studentID}
+
+	// Update operation
+	update := bson.M{
+		"$set": bson.M{"users.$.paid": paid},
+	}
+
+	// Perform the update
+	_, err := db.MongoDB.Database(MongoDBName).Collection(RoomsCollections).UpdateOne(ctx, filter, update)
+
+	return err
+
+}
