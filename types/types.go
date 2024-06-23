@@ -27,7 +27,7 @@ type Message struct {
 type Room struct {
 	ID       string     `json:"roomID"`
 	Name     string     `json:"name"`
-	Teacher  *User      `json:"ownerID"`
+	Teacher  *User      `json:"teacher"`
 	Users    []*User    `json:"users"`
 	Messages []*Message `json:"messages"`
 }
@@ -38,5 +38,4 @@ type User struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Avatar    string `json:"avatar"`
-	Rooms     []*Room
 }

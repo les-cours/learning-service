@@ -22,7 +22,7 @@ func Room(room *types.Room) *learning.Room {
 }
 
 func Messages(messages []*types.Message) []*learning.Message {
-	var grpcMessage = make([]*learning.Message, len(messages))
+	var grpcMessage = make([]*learning.Message, 0)
 	for _, message := range messages {
 		grpcMessage = append(grpcMessage, Message(message))
 	}
@@ -41,7 +41,7 @@ func Message(message *types.Message) *learning.Message {
 }
 
 func Users(users []*types.User) []*learning.User {
-	var grpcUsers = make([]*learning.User, len(users))
+	var grpcUsers = make([]*learning.User, 0)
 	for _, user := range users {
 		grpcUsers = append(grpcUsers, User(user))
 	}

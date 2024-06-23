@@ -62,6 +62,7 @@ func (s *Server) AddMessageToChatRoom(ctx context.Context, in *learning.AddMessa
 	})
 
 	if err != nil {
+		s.Logger.Error(err.Error())
 		return nil, err
 	}
 
