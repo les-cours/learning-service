@@ -39,7 +39,7 @@ func (s *Server) GetChaptersByClassRoom(ctx context.Context, in *learning.IDRequ
 	rows, err := s.DB.Query(`SELECT 
     chapter_id, title, arabic_title, description,description_ar
 FROM chapters 
-WHERE classroom_id = $1;`, in.Id)
+WHERE classroom_id = $1 AND deleted_at IS NULL;`, in.Id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound("chapter")
@@ -140,7 +140,7 @@ func (s *Server) GetChapter(ctx context.Context, in *learning.IDRequest) (*learn
 	rows, err := s.DB.Query(`SELECT 
     chapter_id, title, arabic_title, description
 FROM chapters 
-WHERE classroom_id = $1;`, in.Id)
+WHERE classroom_id = $1 AND deleted_at IS NULL;`, in.Id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound("chapter")

@@ -18,6 +18,7 @@ func (s *Server) GetDocuments(ctx context.Context, in *learning.IDRequest) (*lea
 	rows, err := s.DB.Query(`SELECT document_id, document_type, title, arabic_title, description, description_ar, duration, lecture_number
 FROM documents 
 WHERE lesson_id = $1
+AND deleted_at IS NULL
 ORDER BY lecture_number;`, in.Id)
 	if err != nil {
 		s.Logger.Error(err.Error())
