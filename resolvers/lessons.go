@@ -21,8 +21,8 @@ func (s *Server) CreateLesson(ctx context.Context, in *learning.CreateLessonRequ
 	_, err = s.DB.Exec(`
 INSERT INTO 
     lessons 
-    (lesson_id,chapter_id, title, arabic_title,description)
-VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.Description)
+    (lesson_id,chapter_id, title, arabic_title,description,description_ar,lesson_order)
+VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.Description, in.Description, in.LessonOrder)
 
 	if err != nil {
 		s.Logger.Error(err.Error())
@@ -30,10 +30,12 @@ VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.D
 	}
 
 	return &learning.Lesson{
-		LessonID:    lessonID,
-		Title:       in.Title,
-		ArabicTitle: in.ArabicTitle,
-		Description: in.Description,
+		LessonID:          lessonID,
+		Title:             in.Title,
+		ArabicTitle:       in.ArabicTitle,
+		Description:       in.Description,
+		ArabicDescription: in.Description,
+		LessonOrder:       in.LessonOrder,
 	}, nil
 }
 
