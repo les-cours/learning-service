@@ -42,7 +42,7 @@ func (s *Server) GetLessonsByChapter(ctx context.Context, in *learning.IDRequest
 	var chapterID = in.Id
 	var lessons = new(learning.Lessons)
 	rows, err := s.DB.Query(`SELECT lesson_id, title, arabic_title, description,description_ar,lesson_order
-	FROM lessons WHERE chapter_id = $1 AND deleted_at IS  NULL`, chapterID)
+	FROM lessons WHERE chapter_id = $1 AND deleted_at IS  NULL;`, chapterID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound("lesson")
