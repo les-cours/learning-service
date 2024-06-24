@@ -530,13 +530,13 @@ func (s *Server) CanAccessToClassRoom(studentID, classroomID string) bool {
 
 	var currentTime = time.Now()
 
-	var test string
+	var exist bool
 	err := s.DB.QueryRow(`
-SELECT 1
+SELECT true
 FROM subscription
 WHERE paid_at  between $1 and $2
   AND student_id = $3
-  AND classroom_id = $4 LIMIT 1`, currentTime.AddDate(0, -1, 0), currentTime, studentID, classroomID).Scan(&test)
+  AND classroom_id = $4 LIMIT 1`, currentTime.AddDate(0, -1, 0), currentTime, studentID, classroomID).Scan(&exist)
 
 	if err != nil {
 		s.Logger.Error(err.Error())
