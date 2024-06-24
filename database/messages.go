@@ -5,6 +5,7 @@ import (
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/types"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 )
 
@@ -28,9 +29,11 @@ func (db *MongoClient) AddComment(ctx context.Context, comment *types.Comment) e
 
 func (db *MongoClient) GetComments(ctx context.Context, id string, replied bool) ([]*types.Comment, error) {
 
-	filter := bson.D{{"documentid", id}}
+	var filter primitive.D
 	if replied {
 		filter = bson.D{{"repliedto", id}}
+	} else {
+		filter = bson.D{{"documentid", id}, {"repliedto", ""}}
 	}
 
 	var comments []*types.Comment
