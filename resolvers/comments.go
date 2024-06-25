@@ -95,8 +95,14 @@ func (s *Server) GetRepliedComments(ctx context.Context, in *learning.IDRequest)
 	var apiComments = new(learning.Comments)
 
 	for _, comment := range comments {
+		var role = "student"
+		if comment.IsTeacher {
+			role = "teacher"
+		}
+		
 		user, err := s.Users.GetUserByID(ctx, &users.GetUserByIDRequest{
 			AccountID: comment.UserID,
+			UserRole:  role,
 		})
 		if err != nil {
 			user = &users.User{

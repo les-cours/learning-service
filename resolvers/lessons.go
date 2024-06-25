@@ -22,7 +22,7 @@ func (s *Server) CreateLesson(ctx context.Context, in *learning.CreateLessonRequ
 INSERT INTO 
     lessons 
     (lesson_id,chapter_id, title, arabic_title,description,description_ar,lesson_order)
-VALUES ($1,$2,$3,$4,$5)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.Description, in.Description, in.LessonOrder)
+VALUES ($1,$2,$3,$4,$5,$6,$7)`, lessonID, in.ChapterID, in.Title, in.ArabicTitle, in.Description, in.Description, in.LessonOrder)
 
 	if err != nil {
 		s.Logger.Error(err.Error())
