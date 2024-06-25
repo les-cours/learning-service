@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 	"github.com/les-cours/learning-service/api/learning"
+	"github.com/les-cours/learning-service/api/orgs"
 	"github.com/les-cours/learning-service/api/users"
 	"github.com/les-cours/learning-service/toGrpc"
 	"github.com/les-cours/learning-service/types"
@@ -99,5 +100,46 @@ func (s *Server) GetChatRoom(ctx context.Context, in *learning.IDRequest) (*lear
 		return nil, err
 	}
 	return toGrpc.Room(room), nil
+
+}
+
+func (s *Server) GetMyChatRoom(ctx context.Context, in *learning.IDRequest) (*learning.ClassRooms, error) {
+
+	//if s.CanAccessToClassRoom(in.UserID, in.Id) {
+	//	return nil, ErrPermission
+	//}
+
+	var gradID string
+	s.DB.QueryRow(`SELECT grade_id FROM students where student_id = $1`, in.Id).Scan(&gradID)
+	res, err := s.Orgs.GetSubjectsByGrad(ctx, &orgs.GetSubjectByGradRequest{
+		GradID: gradID,
+	})
+	if err != nil {
+		s.Logger.Error(err.Error())
+		return nil, ErrInternal
+	}
+
+	s.Logger.Info("gradID" + gradID)
+
+	var rooms = make([]*learning.ClassRoom, 0)
+	for _, subject := range res.Subjects {
+		s.Logger.Info("subject : " + subject.SubjectID)
+		room, err := s.GetMyClassRooms(ctx, &learning.IDRequest{
+			Id:     subject.SubjectID,
+			UserID: in.UserID,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if room != nil {
+			rooms = append(rooms, room.Classrooms...)
+		}
+
+	}
+
+	return &learning.ClassRooms{
+		Classrooms: rooms,
+	}, nil
 
 }
