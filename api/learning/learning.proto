@@ -49,8 +49,15 @@ message ClassRoom {
   string arabicDescription = 10;
   Teacher teacher = 11;
   Chapters chapters = 12;
+  Statistic statistics = 13;
 }
-
+message Statistic {
+  int32 students = 1;
+  int32 videos = 2;
+  int32 pdfs = 3;
+  int32 chapters = 4;
+  int32 lessons = 5;
+}
 
 message UpdateClassRoomRequest {
   string teacherID = 11;

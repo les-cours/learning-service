@@ -8,6 +8,7 @@ import (
 	"github.com/les-cours/learning-service/api/learning"
 	"github.com/les-cours/learning-service/api/users"
 	"github.com/les-cours/learning-service/utils"
+	"math/rand"
 	"time"
 )
 
@@ -504,6 +505,9 @@ AND s.paid_at between $3 AND $4;
 
 	classRooms := &learning.ClassRooms{}
 	var studentsCount int32
+
+	var statistics = new(learning.Statistic)
+
 	for rows.Next() {
 		classRoom := &learning.ClassRoom{}
 		err = rows.Scan(&classRoom.ClassRoomID, &classRoom.Title, &classRoom.Image, &classRoom.Price, &classRoom.Badge, &classRoom.Description, &classRoom.ArabicTitle)
@@ -519,7 +523,15 @@ AND s.paid_at between $3 AND $4;
 		}
 		classRoom.StudentCount = studentsCount
 
-		classRoom.Rating = 4.7
+		_ = s.DB.QueryRow(`SELECT count(1) FROM chapters WHERE classroom_id = $1`, classRoom.ClassRoomID).Scan(&statistics.Chapters)
+
+		statistics.Lessons = int32(rand.Intn(21))
+		statistics.Videos = int32(rand.Intn(21))
+		statistics.Pdfs = int32(rand.Intn(21))
+		statistics.Students = studentsCount
+
+		classRoom.Statistics = statistics
+		classRoom.Rating = rand.Float32() * 5
 		classRooms.Classrooms = append(classRooms.Classrooms, classRoom)
 	}
 
