@@ -99,7 +99,7 @@ func (s *Server) GetRepliedComments(ctx context.Context, in *learning.IDRequest)
 		if comment.IsTeacher {
 			role = "teacher"
 		}
-		
+
 		user, err := s.Users.GetUserByID(ctx, &users.GetUserByIDRequest{
 			AccountID: comment.UserID,
 			UserRole:  role,
